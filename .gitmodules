@@ -1,0 +1,6 @@
+[submodule "ubpf"]
+	path = ubpf
+	url = https://github.com/iovisor/ubpf.git
+[submodule "ebpf-verifier"]
+	path = ebpf-verifier
+	url = https://github.com/vbpf/ebpf-verifier
