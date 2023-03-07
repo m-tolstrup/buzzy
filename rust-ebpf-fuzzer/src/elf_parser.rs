@@ -18,7 +18,7 @@ impl ElfParser {
         // ELF header from bpf_lxc.co
         //7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
         //01 00 f7 00 01 00 00 00 00 00 00 00 00 00 00 00
-        //let mut elf_magic_bytes: Vec<u8> = vec![127,69,76,70,2,1,1,0,0,0,0,0,0,0,0,0,
+        //let mut _parsed_prog: Vec<u8> = vec![127,69,76,70,2,1,1,0,0,0,0,0,0,0,0,0,
         //                                        1,0,247,0,1,0,0,0,0,0,0,0,0,0,0,0];
 
         // ELF header from wiki
