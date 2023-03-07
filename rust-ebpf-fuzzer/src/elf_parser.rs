@@ -24,12 +24,12 @@ impl ElfParser {
         // ELF header from wiki
         //7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
         //02 00 3e 00 01 00 00 00 c5 48 40 00 00 00 00 00
-        let mut _parsed_prog: Vec<u8> = vec![127,69,76,70,2,1,1,0,0,0,0,0,0,0,0,0,
+        let mut parsed_prog: Vec<u8> = vec![127,69,76,70,2,1,1,0,0,0,0,0,0,0,0,0,
                                             2,0,62,0,1,0,0,0,197,72,64,0,0,0,0,0];
 
 
         // Parse BpfCode to u8 here
 
-        _parsed_prog
+        parsed_prog
     }
 }
