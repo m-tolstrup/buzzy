@@ -1,13 +1,21 @@
+use rbpf::insn_builder::BpfCode;
+
 pub struct EbpfGenerator {
-    pub number: i32,
+    pub seed: u32,
 }
 
 impl EbpfGenerator {
-    pub fn new(num: i32) -> EbpfGenerator {
-        EbpfGenerator { number: num }
+    pub fn new(_seed: u32) -> EbpfGenerator {
+        EbpfGenerator { 
+            seed: _seed,
+        }
     }
 
-    pub fn print(self) {
-        println!("{:?}", self.number);
+    pub fn generate_program(&mut self) -> BpfCode {
+        let prog = BpfCode::new();
+
+        // Generate program her
+        
+        prog
     }
 }

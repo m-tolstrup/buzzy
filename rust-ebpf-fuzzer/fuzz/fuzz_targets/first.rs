@@ -1,6 +1,7 @@
 #![no_main]
 
 extern crate refuzzer;
+
 use crate::refuzzer::ebpf_generator::EbpfGenerator;
 use crate::refuzzer::elf_parser::ElfParser;
 
@@ -12,21 +13,19 @@ use arbitrary;
 use libfuzzer_sys::fuzz_target;
 
 #[derive(arbitrary::Arbitrary, Debug)]
-struct FuzzData {
-    prog: Vec<u8>,
+struct FuzzSeedData {
+    seed: u32,
 }
 
-fuzz_target!(|data: FuzzData| {
+fuzz_target!(|data: FuzzSeedData| {
 
-    let generator = EbpfGenerator::new(69);
-    generator.print();
+    let mut generator = EbpfGenerator::new(data.seed);
+    let generated_prog = generator.generate_program();
 
-    let parser = ElfParser::new(420);
-    parser.print();
+    let mut parser = ElfParser::new(generated_prog);
+    let parsed_prog = parser.parse_prog();
 
-    let prog = data.prog;
-
-    fs::write("../data.o", prog).expect("Unable to write file");
+    fs::write("../data.o", data.seed).expect("Unable to write file");
 
     // Backtrace environment variable for debugging.
     // env::set_var("RUST_BACKTRACE", "1");
