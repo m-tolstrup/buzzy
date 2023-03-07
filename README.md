@@ -11,7 +11,7 @@ The project has the following structure:
 
 - PREVAIL (Submodule) (Polynomial-Runtime eBPF Verifier using an Abstract Interpretation Layer)
   - We use the PREVAIL verifier, to verify generated eBPF programs.
-- uBPF (Submodule) (User space EBPF for C programs)
+- uBPF (Submodule) (User space eBPF verifier and JIT-compiler for C programs)
   - Currently not used, but the intention is to use the user space JIT-compiler.
 - rbpf (Submodule) (Rust eBPF)
   - As our generator is written in Rust, we use the eBPF structures provided by this Rust eBPF crate.
