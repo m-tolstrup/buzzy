@@ -12,7 +12,10 @@ impl ElfParser {
     }
 
     pub fn parse_prog(self) -> Vec<u8>{
-        let _parsed_prog = vec![b"7f", b"45"];
+        let _parsed_prog = vec![];
+
+        // Parse BpfCode to u8 here
+
         _parsed_prog
     }
 }
