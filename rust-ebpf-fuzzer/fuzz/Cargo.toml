@@ -1,0 +1,34 @@
+[package]
+name = "rust-ebpf-fuzzer-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+arbitrary = { version = "1", features = ["derive"] }
+libfuzzer-sys = "0.4"
+
+[dependencies.rust-ebpf-fuzzer]
+path = ".."
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "fuzz_target_1"
+path = "fuzz_targets/fuzz_target_1.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "first"
+path = "fuzz_targets/first.rs"
+test = false
+doc = false
