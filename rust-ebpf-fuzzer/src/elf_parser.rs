@@ -1,13 +1,13 @@
-pub struct elf_parser {
+pub struct ElfParser {
     pub number: i32,
 }
 
-impl elf_parser {
-    pub fn new(num: i32) => ebpf_generator {
-        ebpf_generator { number: num }
+impl ElfParser {
+    pub fn new(num: i32) -> ElfParser {
+        ElfParser { number: num }
     }
 
-    pub fn print(self) -> ! {
-        println!("{:?}", number);
+    pub fn print(self) {
+        println!("{:?}", self.number);
     }
 }

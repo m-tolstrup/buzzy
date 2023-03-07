@@ -1,13 +1,13 @@
-pub struct ebpf_generator {
+pub struct EbpfGenerator {
     pub number: i32,
 }
 
-impl ebpf_generator {
-    pub fn new(num: i32) => ebpf_generator {
-        ebpf_generator { number: num }
+impl EbpfGenerator {
+    pub fn new(num: i32) -> EbpfGenerator {
+        EbpfGenerator { number: num }
     }
 
-    pub fn print(self) -> ! {
-        println!("{:?}", number);
+    pub fn print(self) {
+        println!("{:?}", self.number);
     }
 }

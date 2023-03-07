@@ -1,5 +1,9 @@
 #![no_main]
 
+extern crate refuzzer;
+use crate::refuzzer::ebpf_generator::EbpfGenerator;
+use crate::refuzzer::elf_parser::ElfParser;
+
 use std::fs;
 use std::process::Command;
 use std::io::{self, Write};
@@ -13,6 +17,12 @@ struct FuzzData {
 }
 
 fuzz_target!(|data: FuzzData| {
+
+    let generator = EbpfGenerator::new(69);
+    generator.print();
+
+    let parser = ElfParser::new(420);
+    parser.print();
 
     let prog = data.prog;
 
