@@ -27,7 +27,6 @@ impl ElfParser {
         let mut _parsed_prog: Vec<u8> = vec![127,69,76,70,2,1,1,0,0,0,0,0,0,0,0,0,
                                             2,0,62,0,1,0,0,0,197,72,64,0,0,0,0,0];
 
-        let _parsed_prog = vec![];
 
         // Parse BpfCode to u8 here
 
