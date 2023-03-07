@@ -21,7 +21,7 @@ fuzz_target!(|data: FuzzData| {
     // Backtrace environment variable for debugging.
     // env::set_var("RUST_BACKTRACE", "1");
     let output = Command::new("../ebpf-verifier/check")
-                .args(&["../data.o", "2/1"])
+                .args(&["../data.o"])
                 .output()
                 .expect("failed to execute process");
     
