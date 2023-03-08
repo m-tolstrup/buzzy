@@ -6,6 +6,3 @@
 	path = ebpf-verifier
 	url = https://github.com/vbpf/ebpf-verifier
 	ignore = dirty
-[submodule "rbpf"]
-	path = rbpf
-	url = https://github.com/qmonnet/rbpf.git
