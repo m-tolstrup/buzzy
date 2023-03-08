@@ -16,6 +16,6 @@ The project has the following structure:
 - rbpf (Submodule) (Rust eBPF)
   - As our generator is written in Rust, we use the eBPF structures provided by this Rust eBPF crate.
 - refuzzer
-  - Our fuzzing harnes utilizing a generator and rBPF assembler.
+  - Our fuzzing harness utilizing a generator and rBPF assembler.
 
 All submodules were installed/compiled by following the README.md provided by the projects.
