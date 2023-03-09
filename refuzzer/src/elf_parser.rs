@@ -1,4 +1,7 @@
-use rbpf::insn_builder::BpfCode;
+use rbpf::insn_builder::{
+    BpfCode,
+    IntoBytes,
+};
 
 pub struct ElfParser {
     pub prog: BpfCode,
@@ -24,11 +27,15 @@ impl ElfParser {
         // ELF header from wiki
         //7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
         //02 00 3e 00 01 00 00 00 c5 48 40 00 00 00 00 00
-        let mut parsed_prog: Vec<u8> = vec![127,69,76,70,2,1,1,0,0,0,0,0,0,0,0,0,
+        let mut magic_bytes: Vec<u8> = vec![127,69,76,70,2,1,1,0,0,0,0,0,0,0,0,0,
                                             2,0,62,0,1,0,0,0,197,72,64,0,0,0,0,0];
+
+        let mut parsed_prog = self.prog.into_bytes();
+
+        magic_bytes.append(&mut parsed_prog.to_vec());
 
         // Parse BpfCode to u8 here
 
-        parsed_prog
+        magic_bytes
     }
 }
