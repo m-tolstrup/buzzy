@@ -11,7 +11,6 @@ extern crate refuzzer;
 
 use crate::refuzzer::ebpf_generator::EbpfGenerator;
 use crate::refuzzer::elf_parser::ElfParser;
-use rbpf::insn_builder::IntoBytes;
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct FuzzSeedData {
@@ -23,7 +22,7 @@ fuzz_target!(|data: FuzzSeedData| {
     let mut generator = EbpfGenerator::new(data.seed);
     let generated_prog = generator.generate_program();
 
-    let mut parser = ElfParser::new(generated_prog);
+    let parser = ElfParser::new(generated_prog);
     let parsed_prog = parser.parse_prog();
 
     fs::write("../obj-files/data.o", parsed_prog).expect("Unable to write file");
@@ -39,7 +38,7 @@ fuzz_target!(|data: FuzzSeedData| {
     io::stdout().write_all(&output.stdout).unwrap();
     
     // If any errors occur when running, unwrap stderr instead.
-    io::stderr().write_all(&output.stderr).unwrap();
+    // io::stderr().write_all(&output.stderr).unwrap();
     
     // Status code
     // println!("output: {}", output.status);
