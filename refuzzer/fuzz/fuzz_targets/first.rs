@@ -38,7 +38,7 @@ fuzz_target!(|data: FuzzSeedData| {
     io::stdout().write_all(&output.stdout).unwrap();
     
     // If any errors occur when running, unwrap stderr instead.
-    // io::stderr().write_all(&output.stderr).unwrap();
+    io::stderr().write_all(&output.stderr).unwrap();
     
     // Status code
     // println!("output: {}", output.status);
