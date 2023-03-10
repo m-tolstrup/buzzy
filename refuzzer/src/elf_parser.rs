@@ -1,3 +1,15 @@
+use std::fs::File;
+use std::path::Path;
+use std::str::FromStr;
+use anyhow::Result;
+
+use target_lexicon::triple;
+
+use faerie::{
+    ArtifactBuilder,
+    Decl,
+};
+
 use rbpf::insn_builder::{
     BpfCode,
     IntoBytes,
@@ -14,24 +26,24 @@ impl ElfParser {
         }
     }
 
-    pub fn parse_prog(self) -> Vec<u8>{
-        // ELF Format magic bytes for preprending on generated program
-        // 7f = magic number, 45 4c 46 = elf
-        // 7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
-        let mut parsed_prog: Vec<u8> = vec![127,69,76,70,2,1,1,0,0,0,0,0,0,0,0,0];
-        
-        // ELF header from bpf_lxc.o
-        // 01 00 f7 00 01 00 00 00 00 00 00 00 00 00 00 00
-        parsed_prog.append(&mut vec![1,0,247,0,1,0,0,0,0,0,0,0,0,0,0,0]);
+    pub fn parse_prog(self) -> anyhow::Result<()> {
 
-        // File header                               x,x,x,x
-        parsed_prog.append(&mut vec![0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+        let name = "../obj-files/data.o";
+        let file = File::create(Path::new(name))?;
+        let mut obj = ArtifactBuilder::new(triple!("x86_64-unknown-unknown-unknown-elf"))
+                      .name(name.to_owned())
+                      .finish();
 
-        // Program header                                      x,x
-        parsed_prog.append(&mut vec![0,0,0,0,64,0,0,0,0,0,64,0,0,0,0,0]);
+        obj.declarations([
+            ("func", Decl::function().into()),
+        ].iter().cloned())?;
 
-        parsed_prog.append(&mut self.generated_prog.into_bytes().to_vec());
+        let byte_code = &mut self.generated_prog.into_bytes();
 
-        parsed_prog
+        obj.define("func", byte_code.to_vec())?;
+
+        obj.write(file)?;
+
+        Ok(())
     }
 }

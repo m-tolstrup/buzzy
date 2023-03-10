@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use rbpf::insn_builder::BpfCode;
 use rbpf::insn_builder::{
     Arch,
