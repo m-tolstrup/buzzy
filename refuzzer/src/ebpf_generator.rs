@@ -21,7 +21,7 @@ impl EbpfGenerator {
     pub fn generate_program(&mut self) -> BpfCode {
         let mut program = BpfCode::new();
 
-        program.add(Source::Imm, Arch::X64).set_dst(0).set_imm(0x0).push()
+        program.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0x00).push()
                .exit().push();
 
         program

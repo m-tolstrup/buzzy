@@ -1,6 +1,7 @@
 #include <linux/bpf.h>
 
+// clang -target bpf -c returnzero.c -o returnzero.o
+
 int func() {
-	int test = 64;
-	return test;
+	return 0;
 }
