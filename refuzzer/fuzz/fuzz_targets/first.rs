@@ -25,12 +25,10 @@ fuzz_target!(|data: FuzzSeedData| {
     let parser = ElfParser::new(generated_prog);
     let result = parser.parse_prog();
 
-    // fs::write("../obj-files/data.o", parsed_prog).expect("Unable to write file");
-
     // Backtrace environment variable for debugging.
     // env::set_var("RUST_BACKTRACE", "1");
     let output = Command::new("../ebpf-verifier/check")
-                 .args(&["../data.o"])
+                 .args(&["../obj-files/data.o"])
                  .output()
                  .expect("failed to execute process");
     
@@ -42,5 +40,4 @@ fuzz_target!(|data: FuzzSeedData| {
     
     // Status code
     // println!("output: {}", output.status);
-
 });
