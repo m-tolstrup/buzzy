@@ -1,34 +1,77 @@
-use rbpf::insn_builder::BpfCode;
+#![allow(unused_imports)]
+
+use std::fs::File;
+use std::path::Path;
+use std::str::FromStr;
+
+use target_lexicon::{
+    Architecture,
+    BinaryFormat,
+    Environment,
+    OperatingSystem,
+    Triple,
+    Vendor
+};
+
+use faerie::{
+    ArtifactBuilder,
+    Decl,
+    SectionKind,
+};
+
+use rbpf::insn_builder::{
+    BpfCode,
+    IntoBytes,
+};
 
 pub struct ElfParser {
-    pub prog: BpfCode,
+    pub generated_prog: BpfCode,
 }
 
 impl ElfParser {
-    pub fn new(generated_prog: BpfCode) -> ElfParser {
+    pub fn new(_generated_prog: BpfCode) -> ElfParser {
         ElfParser { 
-            prog: generated_prog,
+            generated_prog: _generated_prog,
         }
     }
 
-    pub fn parse_prog(self) -> Vec<u8>{
-        // ELF Format magic bytes for preprending FuzzData
-        // 7f = magic number, 45 4c 46 = elf
+    pub fn parse_prog(self) -> anyhow::Result<()> {
 
-        // ELF header from bpf_lxc.co
-        //7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
-        //01 00 f7 00 01 00 00 00 00 00 00 00 00 00 00 00
-        //let mut parsed_prog: Vec<u8> = vec![127,69,76,70,2,1,1,0,0,0,0,0,0,0,0,0,
-        //                                        1,0,247,0,1,0,0,0,0,0,0,0,0,0,0,0];
+        // Create file we want verify with "./check" from PREVAIL
+        let name = "../obj-files/data.o";
+        let file = File::create(Path::new(name))?;
 
-        // ELF header from wiki
-        //7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
-        //02 00 3e 00 01 00 00 00 c5 48 40 00 00 00 00 00
-        let mut parsed_prog: Vec<u8> = vec![127,69,76,70,2,1,1,0,0,0,0,0,0,0,0,0,
-                                            2,0,62,0,1,0,0,0,197,72,64,0,0,0,0,0];
+        // Set target
+        let target = Triple {
+            architecture: Architecture::X86_64,
+            vendor: Vendor::Unknown,
+            operating_system: OperatingSystem::Linux,
+            environment: Environment::Unknown,
+            binary_format: BinaryFormat::Elf,
+        };
 
-        // Parse BpfCode to u8 here
+        // Faerie obj-file builder
+        let mut obj = ArtifactBuilder::new(target)
+                      .name(name.to_owned())
+                      .finish();
 
-        parsed_prog
+        // PREVAIL looks for ".text" section
+        let declarations: Vec<(&'static str, Decl)> = vec![
+            (".text", Decl::section(SectionKind::Text).into()),
+        ];
+
+        obj.declarations(declarations.into_iter())?;
+
+        // First parse generated eBPF into bytes
+        let byte_code = &mut self.generated_prog.into_bytes();
+
+        // Then define the eBPF program under ".text"
+        obj.define(".text", byte_code.to_vec())?;
+
+        // Write to the path
+        obj.write(file)?;
+
+        // Return () if everything went well
+        Ok(())
     }
 }
