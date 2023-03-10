@@ -1,7 +1,8 @@
+#![allow(unused_imports)]
+
 use std::fs::File;
 use std::path::Path;
 use std::str::FromStr;
-use anyhow::Result;
 
 use target_lexicon::triple;
 

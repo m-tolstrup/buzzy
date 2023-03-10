@@ -1,4 +1,5 @@
 #![no_main]
+#![allow(unused_imports)]
 
 use std::fs;
 use std::process::Command;
@@ -33,10 +34,10 @@ fuzz_target!(|data: FuzzSeedData| {
                  .expect("failed to execute process");
     
     // If no errors occur when running, unwrap stdout.
-    io::stdout().write_all(&output.stdout).unwrap();
+    // io::stdout().write_all(&output.stdout).unwrap();
     
     // If any errors occur when running, unwrap stderr instead.
-    io::stderr().write_all(&output.stderr).unwrap();
+    // io::stderr().write_all(&output.stderr).unwrap();
     
     // Status code
     // println!("output: {}", output.status);
