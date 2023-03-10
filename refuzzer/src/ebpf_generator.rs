@@ -22,9 +22,8 @@ impl EbpfGenerator {
 
         program.add(Source::Imm, Arch::X64).set_dst(1).set_imm(0x605).push()
                .mov(Source::Imm, Arch::X64).set_dst(2).set_imm(0x32).push()
-               .mov(Source::Reg, Arch::X64).set_src(0).set_dst(1).push()
-               .swap_bytes(Endian::Little).set_dst(0).set_imm(0x10).push()
                .negate(Arch::X64).set_dst(2).push()
+               .mov(Source::Reg, Arch::X64).set_src(0).set_dst(1).push()
                .exit().push();
 
         program
