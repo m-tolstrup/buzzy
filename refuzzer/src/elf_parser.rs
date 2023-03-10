@@ -57,7 +57,7 @@ impl ElfParser {
 
         // PREVAIL looks for ".text" section
         let declarations: Vec<(&'static str, Decl)> = vec![
-            (".text", Decl::section(SectionKind::Data).into()),
+            (".text", Decl::section(SectionKind::Text).into()),
         ];
 
         obj.declarations(declarations.into_iter())?;
