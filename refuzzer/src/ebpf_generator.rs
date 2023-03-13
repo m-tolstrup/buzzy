@@ -21,7 +21,7 @@ create_function_caller!(call_init_zero, vec![EbpfGenerator::init_zero]);
 
 pub struct EbpfGenerator {
     seed: u32,
-    prog: BpfCode,
+    pub prog: BpfCode,
     config_table: u32,
     configuration: String,
 }
@@ -36,7 +36,7 @@ impl EbpfGenerator {
         }
     }
 
-    pub fn generate_program(&mut self) -> BpfCode {
+    pub fn generate_program(&mut self) {
 
         match self.configuration.as_str() {
             "InitZero" => {
@@ -48,8 +48,6 @@ impl EbpfGenerator {
         };
 
         self.prog.exit().push();
-
-        self.prog
     }
 
     pub fn init_zero(&mut self) {
