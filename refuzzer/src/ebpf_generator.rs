@@ -19,26 +19,26 @@ macro_rules! create_function_caller {
 
 create_function_caller!(call_init_zero, vec![EbpfGenerator::init_zero]);
 
-pub struct EbpfGenerator {
+pub struct EbpfGenerator<'a> {
     seed: u32,
     pub prog: BpfCode,
     config_table: u32,
-    configuration: String,
+    configuration: &'a str,
 }
 
-impl EbpfGenerator {
-    pub fn new(_seed: u32) -> EbpfGenerator {
+impl EbpfGenerator<'_> {
+    pub fn new(_seed: u32, _config: &str) -> EbpfGenerator {
         EbpfGenerator { 
             seed: _seed,
             prog: BpfCode::new(),
             config_table: 42,
-            configuration: String::from("InitZero"),
+            configuration: _config,
         }
     }
 
     pub fn generate_program(&mut self) -> BpfCode{
 
-        match self.configuration.as_str() {
+        match self.configuration {
             "InitZero" => {
                 call_init_zero(self);
             },
