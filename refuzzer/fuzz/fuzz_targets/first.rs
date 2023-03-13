@@ -39,17 +39,17 @@ fuzz_target!(|data: FuzzSeedData| {
     // env::set_var("RUST_BACKTRACE", "1");
 
     // Verify the eBPF program with PREVAIL
-    let output = Command::new("../ebpf-verifier/check")
-                 .args(&["../obj-files/data.o"])
-                 .output()
-                 .expect("failed to execute process");
+    // let output = Command::new("../ebpf-verifier/check")
+    //              .args(&["../obj-files/data.o"])
+    //              .output()
+    //              .expect("failed to execute process");
     
     // Status code
     // println!("output: {}", output.status);
 
     // If no errors occur when running, unwrap stdout.
-    io::stdout().write_all(&output.stdout).unwrap();
+    // io::stdout().write_all(&output.stdout).unwrap();
     
     // If any errors occur when running, unwrap stderr instead.
-    io::stderr().write_all(&output.stderr).unwrap();
+    // io::stderr().write_all(&output.stderr).unwrap();
 });
