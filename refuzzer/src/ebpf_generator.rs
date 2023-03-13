@@ -36,7 +36,7 @@ impl EbpfGenerator {
         }
     }
 
-    pub fn generate_program(&mut self) {
+    pub fn generate_program(&mut self) -> BpfCode{
 
         match self.configuration.as_str() {
             "InitZero" => {
@@ -48,6 +48,8 @@ impl EbpfGenerator {
         };
 
         self.prog.exit().push();
+
+        self.prog.clone()
     }
 
     pub fn init_zero(&mut self) {
