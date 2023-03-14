@@ -27,8 +27,6 @@ impl EbpfGenerator<'_> {
 
     pub fn generate_program(&mut self) -> BpfCode{
 
-        let mut func_arr: Vec<&dyn Fn(&mut EbpfGenerator)> = vec![];
-
         match self.configuration {
             "InitZero" => {
                 self.init_zero();
