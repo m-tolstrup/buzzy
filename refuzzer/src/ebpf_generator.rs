@@ -8,19 +8,6 @@ use rbpf::insn_builder::{
     MemSize,
 };
 
-macro_rules! create_function_caller {
-    ($function_name:ident, $function_vector:expr) => {
-        fn $function_name (generator: &mut EbpfGenerator) {
-            for func in $function_vector {
-                func(generator);
-            }
-        }
-    };
-}
-
-create_function_caller!(call_init_zero, vec![EbpfGenerator::init_zero]);
-create_function_caller!(call_header, vec![EbpfGenerator::init_zero, EbpfGenerator::init_map]);
-
 pub struct EbpfGenerator<'a> {
     seed: u32,
     pub prog: BpfCode,
@@ -40,12 +27,15 @@ impl EbpfGenerator<'_> {
 
     pub fn generate_program(&mut self) -> BpfCode{
 
+        let mut func_arr: Vec<&dyn Fn(&mut EbpfGenerator)> = vec![];
+
         match self.configuration {
             "InitZero" => {
-                call_init_zero(self);
+                self.init_zero();
             },
             "InitHeader" => {
-                call_header(self);
+                self.init_zero();
+                self.init_map();
             },
             _ => {
                 //Nothing
