@@ -5,6 +5,7 @@ use rbpf::insn_builder::{
     Endian,
     Instruction,
     Source,
+    MemSize,
 };
 
 macro_rules! create_function_caller {
@@ -18,6 +19,7 @@ macro_rules! create_function_caller {
 }
 
 create_function_caller!(call_init_zero, vec![EbpfGenerator::init_zero]);
+create_function_caller!(call_header, vec![EbpfGenerator::init_zero, EbpfGenerator::init_map]);
 
 pub struct EbpfGenerator<'a> {
     seed: u32,
@@ -42,6 +44,9 @@ impl EbpfGenerator<'_> {
             "InitZero" => {
                 call_init_zero(self);
             },
+            "InitHeader" => {
+                call_header(self);
+            },
             _ => {
                 //Nothing
             }
@@ -54,5 +59,15 @@ impl EbpfGenerator<'_> {
 
     pub fn init_zero(&mut self) {
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0x00).push();
+    }
+
+    pub fn init_map(&mut self) {
+        //prepare the stack for "map_lookup_elem"
+        //self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0x00).push();
+        //BPF_STX_MEM(BPF_W, BPF_REG_10, BPF_REG_0, -4) -4? (.set_off(-4))
+        self.prog.store_x(MemSize::Word).set_dst(10).set_src(0).push();
+        self.prog.mov(Source::Reg, Arch::X64).set_dst(2).set_src(10).push();
+        self.prog.add(Source::Imm, Arch::X64).set_dst(2).set_imm(-4).push();
+
     }
 }
