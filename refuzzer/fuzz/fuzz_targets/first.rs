@@ -20,7 +20,7 @@ struct FuzzSeedData {
 
 fuzz_target!(|data: FuzzSeedData| {
     // Generate a program - fuzzed structure provides randomness
-    let config = "InitZero";
+    let config = "InitHeader";
     let mut generator = EbpfGenerator::new(data.seed, config);
     let generated_program = generator.generate_program();
 
