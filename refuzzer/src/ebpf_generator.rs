@@ -54,8 +54,8 @@ impl EbpfGenerator<'_> {
         // Prepare the stack for "map_lookup_elem"
         //self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0x00).push();
 
-        //BPF_STX_MEM(BPF_W, BPF_REG_10, BPF_REG_0, -4) -4? (.set_off(-4) )
-        self.prog.store_x(MemSize::Word).set_dst(10).set_src(0).push();
+        //BPF_STX_MEM(BPF_W, BPF_REG_10, BPF_REG_0, -4)
+        self.prog.store_x(MemSize::Word).set_dst(10).set_src(0).set_off(-4).push();
 
         self.prog.mov(Source::Reg, Arch::X64).set_dst(2).set_src(10).push();
         self.prog.add(Source::Imm, Arch::X64).set_dst(2).set_imm(-4).push();
@@ -75,8 +75,9 @@ impl EbpfGenerator<'_> {
         //BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, BPF_FUNC_map_lookup_elem)
         // define BPF_RAW_INSN(CODE, DST, SRC, OFF, IMM)
         //     BPF_JMP | BPF_CALL ? (bpf_common.h)
-        //     BPF_FUNC_map_lookup_elem helper func?
-
+        //     BPF_FUNC_map_lookup_elem helper func? bpf_map_lookup_elem
+        self.prog.call().set_dst(0).set_src(0).set_off(0).push();
+        
         // Verify the map so that we can use it
         self.prog.jump_conditional(Cond::NotEquals, Source::Imm).set_dst(0).set_imm(1).push();
         self.prog.exit().push();
