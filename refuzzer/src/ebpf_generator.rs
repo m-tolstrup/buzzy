@@ -76,7 +76,11 @@ impl EbpfGenerator<'_> {
         // define BPF_RAW_INSN(CODE, DST, SRC, OFF, IMM)
         //     BPF_JMP | BPF_CALL ? (bpf_common.h)
         //     BPF_FUNC_map_lookup_elem helper func? bpf_map_lookup_elem
-        self.prog.call().set_dst(0).set_src(0).set_off(0).push();
+        // https://github.com/torvalds/linux/blob/master/include/uapi/linux/bpf.h#L5727
+        // integer value in 'imm' field of BPF_CALL instruction selects which helper function eBPF program intends to call
+        // https://github.com/torvalds/linux/blob/master/include/uapi/linux/bpf.h#L5506
+        // 1 = map_lookup_elem? 0x11_22_33_44 = 44, 33, 22, 11 (little endianness)
+        self.prog.call().set_dst(0).set_src(0).set_off(0).set_imm(0x01_00_00_00).push();
         
         // Verify the map so that we can use it
         self.prog.jump_conditional(Cond::NotEquals, Source::Imm).set_dst(0).set_imm(1).push();
