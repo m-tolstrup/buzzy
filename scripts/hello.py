@@ -1,6 +1,8 @@
 # Code written by Liz Rice at:
 # https://github.com/lizrice/learning-ebpf/blob/main/chapter2/hello.py
 
+# Run this to test a simple Hello World program written using BCC
+
 from bcc import BPF
 
 program = r"""

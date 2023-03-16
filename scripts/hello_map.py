@@ -1,6 +1,8 @@
 # Code written by Liz Rice at:
 # https://github.com/lizrice/learning-ebpf/blob/main/chapter2/hello-map.py
 
+# Run this to test a map test using BCC
+
 from bcc import BPF
 from time import sleep
 
