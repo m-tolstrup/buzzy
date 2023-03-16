@@ -1,6 +1,7 @@
 from bcc import BPF
 
 program = r"""
+int init_map(void *ctx) {
     int fd;
   
     union bpf_attr attr = {
@@ -13,6 +14,14 @@ program = r"""
     };
 
     fd = bpf(BPF_MAP_CREATE, &attr, sizeof(attr));
+    
+    bpf_trace_printk("%d", fd);
+    
+    return 0;
 """
 
 b = BPF(text=program)
+syscall = b.get_syscall_fnname("execve")
+b.attach_kprobe(event=syscall, fn_name="hello")
+
+b.trace_print()
