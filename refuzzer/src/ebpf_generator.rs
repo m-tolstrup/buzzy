@@ -12,8 +12,8 @@ use rbpf::insn_builder::{
 use crate::config_table::ConfigTable;
 
 pub struct EbpfGenerator<'a> {
-    pub prog: BpfCode,
-    pub config_table: ConfigTable,
+    prog: BpfCode,
+    config_table: ConfigTable,
     strategy: &'a str,
 }
 
