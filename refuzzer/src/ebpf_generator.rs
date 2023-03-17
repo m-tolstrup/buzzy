@@ -13,7 +13,7 @@ use crate::config_table::ConfigTable;
 
 pub struct EbpfGenerator<'a> {
     pub prog: BpfCode,
-    config_table: ConfigTable,
+    pub config_table: ConfigTable,
     strategy: &'a str,
 }
 

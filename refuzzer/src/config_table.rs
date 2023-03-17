@@ -1,5 +1,5 @@
 pub struct ConfigTable {
-	seed: u32,
+	pub seed: u32,
 }
 
 impl ConfigTable {
