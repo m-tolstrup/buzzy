@@ -1,6 +1,6 @@
 #![allow(unused_imports)]
-use rbpf::insn_builder::BpfCode;
 use rbpf::insn_builder::{
+    BpfCode,
     Arch,
     Endian,
     Instruction,
@@ -9,26 +9,26 @@ use rbpf::insn_builder::{
     MemSize,
 };
 
+use crate::config_table::ConfigTable;
+
 pub struct EbpfGenerator<'a> {
-    seed: u32,
-    pub prog: BpfCode,
-    config_table: u32,
-    configuration: &'a str,
+    prog: BpfCode,
+    config_table: ConfigTable,
+    strategy: &'a str,
 }
 
 impl EbpfGenerator<'_> {
-    pub fn new(_seed: u32, _config: &str) -> EbpfGenerator {
+    pub fn new(_seed: u32, _strategy: &str) -> EbpfGenerator {
         EbpfGenerator { 
-            seed: _seed,
             prog: BpfCode::new(),
-            config_table: 42,
-            configuration: _config,
+            config_table: ConfigTable::new(_seed),
+            strategy: _strategy,
         }
     }
 
     pub fn generate_program(&mut self) -> BpfCode{
 
-        match self.configuration {
+        match self.strategy {
             "InitZero" => {
                 self.init_zero();
             },
