@@ -41,7 +41,7 @@ fuzz_target!(|data: FuzzSeedData| {
 
     // Verify the eBPF program with PREVAIL
     let output = Command::new("../ebpf-verifier/check")
-                 .args(&["../obj-files/data.o"])
+                 .args(&["../obj-files/data.o", "-f"])
                  .output()
                  .expect("failed to execute process");
     
