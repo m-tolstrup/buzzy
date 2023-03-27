@@ -70,7 +70,7 @@ impl EbpfGenerator<'_> {
 
         // BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, BPF_FUNC_map_lookup_elem)
         // integer value in 'imm' field of BPF_CALL instruction selects which helper function eBPF program intends to call
-        self.prog.call().set_dst(0).set_src(0).set_off(0).set_imm(0xff_ff_ff_ff).push();
+        self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0).push();
 
         // Verify the map so that we can use it
         // BPF_JMP_IMM(BPF_JNE, BPF_REG_0, 0, 1)
