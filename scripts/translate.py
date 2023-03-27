@@ -5,13 +5,43 @@ import os
 path = os.path.join('..', 'refuzzer', 'src', 'bin', 'translate.rs')
 
 # Paste your bytecode here
-elf_bytes = "b701 0000 2800 0000\
-             631a fcff 0000 0000\
+elf_bytes = "b702 0000 0000 0000\
+             7b2a f0ff 0000 0000\
+             bf21 0000 0000 0000\
+             8510 0000 ffff ffff\
+             79a3 f0ff 0000 0000\
+             b702 0000 0a00 0000\
+             7b2a d0ff 0000 0000\
+             1804 0000 fcff ffff\
+             0000 0000 0000 0000\
+             7b4a d8ff 0000 0000\
+             bf31 0000 0000 0000\
+             8510 0000 ffff ffff\
+             79a2 d0ff 0000 0000\
              b701 0000 0200 0000\
-             631a f8ff 0000 0000\
+             7b1a e0ff 0000 0000\
+             8510 0000 ffff ffff\
+             79a3 d8ff 0000 0000\
+             79a2 e0ff 0000 0000\
+             79a1 f0ff 0000 0000\
+             8510 0000 ffff ffff\
+             b702 0000 0100 0000\
+             7b2a e8ff 0000 0000\
+             bf21 0000 0000 0000\
+             8510 0000 ffff ffff\
+             79a5 e8ff 0000 0000\
+             79a4 f0ff 0000 0000\
+             b701 0000 8500 0000\
+             bf42 0000 0000 0000\
+             bf43 0000 0000 0000\
+             8510 0000 ffff ffff\
+             79a4 e8ff 0000 0000\
+             79a3 f0ff 0000 0000\
+             b701 0000 5000 0000\
+             bf32 0000 0000 0000\
+             8510 0000 ffff ffff\
+             8510 0000 ffff ffff\
              61a0 fcff 0000 0000\
-             61a1 f8ff 0000 0000\
-             0f10 0000 0000 0000\
              9500 0000 0000 0000"
 
 write_str = "use rbpf::disassembler;\n\n"
