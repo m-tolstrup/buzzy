@@ -47,18 +47,18 @@ impl EbpfGenerator<'_> {
     }
 
     pub fn init_zero(&mut self) {
-        self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0x00).push();
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(0x00).set_imm(0).push();
     }
 
     pub fn init_map(&mut self) {
         // Prepare the stack for "map_lookup_elem"
-        //self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0x00).push();
+        //self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
 
         //BPF_STX_MEM(BPF_W, BPF_REG_10, BPF_REG_0, -4)
-        self.prog.store_x(MemSize::Word).set_dst(10).set_src(0).set_off(-4).push();
+        self.prog.store_x(MemSize::DoubleWord).set_dst(0x10).set_src(0x00).set_off(-8).push();
 
-        self.prog.mov(Source::Reg, Arch::X64).set_dst(2).set_src(10).push();
-        self.prog.add(Source::Imm, Arch::X64).set_dst(2).set_imm(-4).push();
+        self.prog.mov(Source::Reg, Arch::X64).set_dst(0x02).set_src(0x10).push();
+        self.prog.add(Source::Imm, Arch::X64).set_dst(0x02).set_imm(-8).push();
 
         // Make the call to "map_lookup_elem"
         // TODO manually insert load map bytecode*
@@ -70,8 +70,25 @@ impl EbpfGenerator<'_> {
         //         DST = 1
         //         BPF_PSEUDO_MAP_FD = BPF_TRIAGE_MAP_FD = 1
         //         MAP_FD = ? (placeholder = set_src(1))
-        self.prog.mov(Source::Imm, Arch::X64).set_dst(1).set_imm(1).push();
-        //     
+        let test: i32 = 1;
+        let map_fd_ptr: *const i32 = &test;
+        let map_fd_str = format!("{:p}", map_fd_ptr);
+
+        // trim hex pointer address 0x
+        let map_fd_str_nox = map_fd_str.trim_start_matches("0x");
+        let map_fd_dec = i32::from_str_radix(map_fd_str_nox, 16);
+
+        // convert radix result through debug formatter: Ok(i32), trim Ok()
+        let map_fd_dec_ok = format!("{:?}", map_fd_dec);
+        let map_fd_dec_nok1 = map_fd_dec_ok.trim_start_matches("Ok(");
+        let map_fd_dec_nok = &map_fd_dec_nok1[0..map_fd_dec_nok1.len()-1];
+
+        // overflow i32 -> i32?
+        //let map_fd: i32 = map_fd_dec_nok.parse::<i32>().unwrap();
+
+        //println!("{}", map_fd);
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(0x01).set_imm(1).push();
+
         //BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, BPF_FUNC_map_lookup_elem)
         // define BPF_RAW_INSN(CODE, DST, SRC, OFF, IMM)
         //     BPF_JMP | BPF_CALL ? (bpf_common.h)
@@ -79,17 +96,17 @@ impl EbpfGenerator<'_> {
         // https://github.com/torvalds/linux/blob/master/include/uapi/linux/bpf.h#L5727
         // integer value in 'imm' field of BPF_CALL instruction selects which helper function eBPF program intends to call
         // https://github.com/torvalds/linux/blob/master/include/uapi/linux/bpf.h#L5506
-        // 1 = map_lookup_elem? 0x11_22_33_44 = 44, 33, 22, 11 (little endianness)
-        self.prog.call().set_dst(0x00).set_src(0x00).set_off(0x00).set_imm(0x00_00_00_01).push();
+        // 1 = map_lookup_elem 0x11_22_33_44 = 44, 33, 22, 11 (little endianness)
+        self.prog.call().set_dst(0x00).set_src(0x01).set_off(0).set_imm(0x00_00_00_01).push();
         
         // Verify the map so that we can use it
-        self.prog.jump_conditional(Cond::NotEquals, Source::Imm).set_dst(0).set_imm(1).push();
+        self.prog.jump_conditional(Cond::NotEquals, Source::Imm).set_dst(0x00).set_imm(1).push();
         self.prog.exit().push();
 
         // Initialize two registers by reading from map?
         // BPF_LDX_MEM(BPF_DW, this->reg1, BPF_REG_0, 0) this->reg1?
-        self.prog.load_x(MemSize::DoubleWord).set_dst(1).set_src(0).set_off(0).push();
-        self.prog.load_x(MemSize::DoubleWord).set_dst(2).set_src(0).set_off(8).push();
+        self.prog.load_x(MemSize::DoubleWord).set_dst(0x01).set_src(0x00).set_off(0).push();
+        self.prog.load_x(MemSize::DoubleWord).set_dst(0x02).set_src(0x00).set_off(8).push();
 
     }
 }
