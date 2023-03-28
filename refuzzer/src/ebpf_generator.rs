@@ -33,7 +33,6 @@ impl EbpfGenerator<'_> {
                 self.init_zero();
             },
             "InitHeader" => {
-                self.init_zero();
                 self.init_map();
             },
             _ => {
@@ -47,7 +46,7 @@ impl EbpfGenerator<'_> {
     }
 
     pub fn init_zero(&mut self) {
-        self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0x00).push();
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
     }
 
     pub fn init_map(&mut self) {
@@ -64,13 +63,17 @@ impl EbpfGenerator<'_> {
         // BPF_ALU64_IMM(BPF_ADD, BPF_REG_2, -4)
         self.prog.add(Source::Imm, Arch::X64).set_dst(2).set_imm(-4).push();
 
+        // A bit of trolling
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(3).set_imm(1).push();
+        self.prog.mov(Source::Reg, Arch::X64).set_dst(1).set_src(3).push();
+
         // Make the call to "map_lookup_elem"
         // BPF_LD_MAP_FD(BPF_REG_1, BPF_TRIAGE_MAP_FD)
-        self.prog.mov(Source::Imm, Arch::X64).set_dst(1).set_imm(1).push();
+        // self.prog.mov(Source::Imm, Arch::X64).set_dst(1).set_imm(1).push();
 
         // BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, BPF_FUNC_map_lookup_elem)
         // integer value in 'imm' field of BPF_CALL instruction selects which helper function eBPF program intends to call
-        self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0).push();
+        self.prog.call().set_dst(0).set_src(0).set_off(0).set_imm(1).push();
 
         // Verify the map so that we can use it
         // BPF_JMP_IMM(BPF_JNE, BPF_REG_0, 0, 1)

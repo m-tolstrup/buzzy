@@ -13,3 +13,4 @@ int func() {
 	BPF_JMP_IMM(BPF_JNE, BPF_REG_0, 0, 1);
 	BPF_EXIT_INSN();
 }
+
