@@ -68,7 +68,7 @@ impl EbpfGenerator<'_> {
         self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
         
         // Verify the map so that we can use it
-        self.prog.jump_conditional(Cond::NotEquals, Source::Imm).set_dst(0).set_imm(1).push();
+        self.prog.jump_conditional(Cond::NotEquals, Source::Imm).set_dst(0).set_imm(0).set_off(1).push();
         self.prog.exit().push();
 
         // Initialize two registers by reading from map?
