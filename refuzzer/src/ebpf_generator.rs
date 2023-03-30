@@ -95,7 +95,7 @@ impl EbpfGenerator<'_> {
         self.prog.store_x(MemSize::DoubleWord).set_dst(10).set_src(2).set_off(-48).push();
         // lddw r4, 0xfffffffc
         // TODO - missing last ff (can because of i32 not u32)
-        self.prog.load(MemSize::DoubleWord).set_dst(4).set_imm(0xff_ff_ff).push();
+        self.prog.load(MemSize::DoubleWord).set_dst(4).set_imm(1).push();
         // stxdw [r10-0x28], r4
         // TODO DOES NOT SHOW UP???
         self.prog.store_x(MemSize::DoubleWord).set_dst(10).set_src(4).set_off(-40).push();
@@ -111,5 +111,47 @@ impl EbpfGenerator<'_> {
         self.prog.store_x(MemSize::DoubleWord).set_dst(10).set_src(1).set_off(-32).push();
         // call 0xffffffff (8510 0000 ffff ffff)
         self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
+        // ldxdw r2 [r10-0x30]
+        self.prog.load_x(MemSize::DoubleWord).set_dst(3).set_src(10).set_off(-40).push();
+        // ldxdw r2 [r10-0x30]
+        self.prog.load_x(MemSize::DoubleWord).set_dst(2).set_src(10).set_off(-32).push();
+        // ldxdw r2 [r10-0x30]
+        self.prog.load_x(MemSize::DoubleWord).set_dst(1).set_src(10).set_off(-16).push();
+        // call 0xffffffff (8510 0000 ffff ffff)
+        self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
+        // mov64 r2, 0x1
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(2).set_imm(1).push();
+        // stxdw [r10-0x18], r2
+        self.prog.store_x(MemSize::DoubleWord).set_dst(10).set_src(2).set_off(-24).push();
+        // mov64 r1, r2
+        self.prog.mov(Source::Reg, Arch::X64).set_dst(1).set_src(2).push();
+        // call 0xffffffff (8510 0000 ffff ffff)
+        self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
+        // ldxdw r5 [r10-0x18]
+        self.prog.load_x(MemSize::DoubleWord).set_dst(5).set_src(10).set_off(-24).push();
+        // ldxdw r4 [r10-0x10]
+        self.prog.load_x(MemSize::DoubleWord).set_dst(4).set_src(10).set_off(-16).push();
+        // mov64 r1, 0x85
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(1).set_imm(0x85).push();
+        // mov64 r2, r4
+        self.prog.mov(Source::Reg, Arch::X64).set_dst(2).set_src(4).push();
+        // mov64 r3, r4
+        self.prog.mov(Source::Reg, Arch::X64).set_dst(3).set_src(4).push();
+        // call 0xffffffff (8510 0000 ffff ffff)
+        self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
+        // ldxdw r4 [r10-0x18]
+        self.prog.load_x(MemSize::DoubleWord).set_dst(4).set_src(10).set_off(-24).push();
+        // ldxdw r3 [r10-0x10]
+        self.prog.load_x(MemSize::DoubleWord).set_dst(3).set_src(10).set_off(-16).push();
+        // mov64 r1, 0x50
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(1).set_imm(0x50).push();
+        // mov64 r2, r3
+        self.prog.mov(Source::Reg, Arch::X64).set_dst(2).set_src(3).push();
+        // call 0xffffffff (8510 0000 ffff ffff)
+        self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
+        // call 0xffffffff (8510 0000 ffff ffff)
+        self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
+        // ldxdw r4 [r10-0x4]
+        self.prog.load_x(MemSize::DoubleWord).set_dst(4).set_src(10).set_off(-4).push();
     }
 }
