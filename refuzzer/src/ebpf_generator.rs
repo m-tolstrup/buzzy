@@ -99,6 +99,7 @@ impl EbpfGenerator<'_> {
         // stxdw [r10-0x28], r4
         // TODO DOES NOT SHOW UP???
         self.prog.store_x(MemSize::DoubleWord).set_dst(10).set_src(4).set_off(-40).push();
+        self.prog.store_x(MemSize::DoubleWord).set_dst(10).set_src(4).set_off(-40).push();
         // mov64 r1, r3
         self.prog.mov(Source::Reg, Arch::X64).set_dst(1).set_src(3).push();
         // call 0xffffffff (8510 0000 ffff ffff)
@@ -151,7 +152,7 @@ impl EbpfGenerator<'_> {
         self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
         // call 0xffffffff (8510 0000 ffff ffff)
         self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
-        // ldxdw r4 [r10-0x4]
-        self.prog.load_x(MemSize::DoubleWord).set_dst(4).set_src(10).set_off(-4).push();
+        // ldxdw r0 [r10-0x4]
+        self.prog.load_x(MemSize::Word).set_dst(0).set_src(10).set_off(-4).push();
     }
 }
