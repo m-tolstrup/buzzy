@@ -58,6 +58,7 @@ impl ElfParser {
         // PREVAIL looks for ".text" section
         let declarations: Vec<(&'static str, Decl)> = vec![
             (".text", Decl::section(SectionKind::Text).into()),
+            (".maps", Decl::section(SectionKind::Data).into()),
         ];
 
         obj.declarations(declarations.into_iter())?;
@@ -67,6 +68,7 @@ impl ElfParser {
 
         // Then define the eBPF program under ".text"
         obj.define(".text", byte_code.to_vec())?;
+        obj.define(".maps", b"".to_vec())?;
 
         // Write to the path
         obj.write(file)?;
