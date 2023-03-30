@@ -33,8 +33,7 @@ impl EbpfGenerator<'_> {
                 self.init_zero();
             },
             "InitHeader" => {
-                self.init_zero();
-                self.init_map();
+                self.scannell_header();
             },
             _ => {
                 //Nothing
@@ -76,5 +75,41 @@ impl EbpfGenerator<'_> {
         self.prog.load_x(MemSize::DoubleWord).set_dst(1).set_src(0).set_off(0).push();
         self.prog.load_x(MemSize::DoubleWord).set_dst(2).set_src(0).set_off(8).push();
 
+    }
+
+    pub fn scannell_header (&mut self) {
+        // mov64 r2, 0x0
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(2).set_imm(0).push();
+        // stxdw [r10-0x10], r2
+        self.prog.store_x(MemSize::DoubleWord).set_dst(10).set_src(2).set_off(-16).push();
+        // mov64 r1, r2
+        self.prog.mov(Source::Reg, Arch::X64).set_dst(1).set_src(2).push();
+        // call 0xffffffff (8510 0000 ffff ffff)
+        // TODO translate functions in rBPF like clang does?
+        self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
+        // ldxdw r3 [r10-0x10]
+        self.prog.load_x(MemSize::DoubleWord).set_dst(3).set_src(10).set_off(-16).push();
+        // mov64 r2, 0xa
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(2).set_imm(10).push();
+        // stxdw [r10-0x30], r2
+        self.prog.store_x(MemSize::DoubleWord).set_dst(10).set_src(2).set_off(-48).push();
+        // lddw r4, 0xfffffffc
+        // TODO - missing last ff (can because of i32 not u32)
+        self.prog.load(MemSize::DoubleWord).set_dst(4).set_imm(0xff_ff_ff).push();
+        // stxdw [r10-0x28], r4
+        // TODO DOES NOT SHOW UP???
+        self.prog.store_x(MemSize::DoubleWord).set_dst(10).set_src(4).set_off(-40).push();
+        // mov64 r1, r3
+        self.prog.mov(Source::Reg, Arch::X64).set_dst(1).set_src(3).push();
+        // call 0xffffffff (8510 0000 ffff ffff)
+        self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
+        // ldxdw r2 [r10-0x30]
+        self.prog.load_x(MemSize::DoubleWord).set_dst(2).set_src(10).set_off(-48).push();
+        // mov64 r1, 0x2
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(1).set_imm(2).push();
+        // stxdw [r10-0x20], r1
+        self.prog.store_x(MemSize::DoubleWord).set_dst(10).set_src(1).set_off(-32).push();
+        // call 0xffffffff (8510 0000 ffff ffff)
+        self.prog.call().set_dst(0).set_src(1).set_off(0).set_imm(0x00_00_00_01).push();
     }
 }
