@@ -7,7 +7,9 @@ impl ConfigTable {
 	pub fn new(_seed: u32) -> ConfigTable {
 		ConfigTable {
 			seed: _seed,
-			random_instr_count: _seed & 111111111,
+			// Max instruction size is 512, i.e. 9 bits
+			// Change here if you want more or fewer instructions
+			random_instr_count: _seed & 0b111111111,
 		}
 	}
 }

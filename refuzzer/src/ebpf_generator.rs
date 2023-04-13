@@ -1,4 +1,6 @@
 #![allow(unused_imports)]
+use rand::prelude::*;
+
 use rbpf::insn_builder::{
     BpfCode,
     Arch,
@@ -42,7 +44,28 @@ impl EbpfGenerator<'_> {
         self.prog.clone()
     }
 
-    pub fn random_instructs(&mut self) {
-        println!("{}", self.config_table.random_instr_count)
+    fn random_instructs(&mut self) {
+
+        if self.config_table.random_instr_count == 0 {
+            self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
+        }
+        
+        loop {
+            if self.config_table.random_instr_count == 0 {
+                break;
+            }
+
+            self.select_random_instr();
+            
+            self.config_table.random_instr_count -= 1;
+        }
     }
+
+    fn select_random_instr(&mut self) {
+        match rand::thread_rng().gen_range(0..1) {
+            0 => self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push(),
+            _ => &mut self.prog,
+        };
+    }
+
 }
