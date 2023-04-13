@@ -43,6 +43,6 @@ impl EbpfGenerator<'_> {
     }
 
     pub fn random_instructs(&mut self) {
-        self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
+        println!("{}", self.config_table.random_instr_count)
     }
 }
