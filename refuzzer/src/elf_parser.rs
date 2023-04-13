@@ -51,7 +51,7 @@ impl ElfParser {
             environment: Environment::Unknown,
             binary_format: BinaryFormat::Elf,
         };
-
+        
         // Faerie obj-file builder
         let mut obj = ArtifactBuilder::new(target)
                       .name(name.to_owned())
@@ -64,8 +64,8 @@ impl ElfParser {
             // alloc() is probably required for linking?
             // however linking to empty maps does not result in "faulty map" error?
             // TODO: Check what constitutes "map usage" in asm_files.cpp#L82
-            ("main", Decl::function().into()),
-            ("maps", Decl::data().into()),
+            //("main", Decl::function().into()),
+            //("maps", Decl::data().into()),
             //("maps", Decl::section(SectionKind::Data).into()),
         ];
 
@@ -76,10 +76,10 @@ impl ElfParser {
 
         // Then define the eBPF program under ".text"
         obj.define(".text", byte_code.to_vec())?;
-        obj.define("main", b"".to_vec())?;
-        obj.define("maps", b"".to_vec())?;
+        //obj.define("main", b"".to_vec())?;
+        //obj.define("maps", b"".to_vec())?;
 
-        obj.link(Link { from: "main", to: "maps", at: 0 })?;
+        //obj.link(Link { from: "main", to: "maps", at: 0 })?;
 
         // Write to the path
         obj.write(file)?;
