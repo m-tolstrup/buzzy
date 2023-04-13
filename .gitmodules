@@ -10,3 +10,8 @@
 	path = rbpf
 	url = https://github.com/m-tolstrup/rbpf.git
 	branch = master
+[submodule "faerie"]
+	path = refuzzer/faerie
+	url = https://github.com/tobashi/faerie
+	branch = master
+	ignore = dirty
