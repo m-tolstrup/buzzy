@@ -20,7 +20,7 @@ struct FuzzSeedData {
 
 fuzz_target!(|data: FuzzSeedData| {
     // Generate a program - fuzzed structure provides randomness
-    let strategy = "Random";
+    let strategy = "InitZero";
     let mut generator = EbpfGenerator::new(data.seed, strategy);
     let generated_program = generator.generate_program();
 
@@ -40,17 +40,27 @@ fuzz_target!(|data: FuzzSeedData| {
     // env::set_var("RUST_BACKTRACE", "1");
 
     // Verify the eBPF program with PREVAIL
-    // let output = Command::new("../ebpf-verifier/check")
-    //              .args(&["../obj-files/data.o"])
-    //              .output()
-    //              .expect("failed to execute process");
+    let verify_output = Command::new("../ebpf-verifier/check")
+                 .args(&["../obj-files/data.o"])
+                 .output()
+                 .expect("failed to execute process");
+
+    // Execute the eBPF program with uBPF (-j flag for JIT compile)
+    let execute_output = Command::new("../ubpf/vm/test")
+                 .args(&["../obj-files/data.o"])
+                 .output()
+                 .expect("failed to execute process");
     
     // Status code
     // println!("output: {}", output.status);
 
+    // TODO: conditional wrap of prints
+
     // If no errors occur when running, unwrap stdout.
-    // io::stdout().write_all(&output.stdout).unwrap();
-    
+    io::stdout().write_all(&verify_output.stdout).unwrap();
+    io::stdout().write_all(&execute_output.stdout).unwrap();
+
     // If any errors occur when running, unwrap stderr instead.
-    // io::stderr().write_all(&output.stderr).unwrap();
+    io::stderr().write_all(&verify_output.stderr).unwrap();
+    io::stderr().write_all(&execute_output.stderr).unwrap();
 });
