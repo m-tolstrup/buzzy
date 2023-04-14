@@ -17,6 +17,8 @@ use faerie::{
     ArtifactBuilder,
     Decl,
     SectionKind,
+    Link,
+    Reloc,
 };
 
 use rbpf::insn_builder::{
@@ -49,7 +51,7 @@ impl ElfParser {
             environment: Environment::Unknown,
             binary_format: BinaryFormat::Elf,
         };
-
+        
         // Faerie obj-file builder
         let mut obj = ArtifactBuilder::new(target)
                       .name(name.to_owned())
@@ -57,7 +59,12 @@ impl ElfParser {
 
         // PREVAIL looks for ".text" section
         let declarations: Vec<(&'static str, Decl)> = vec![
-            (".text", Decl::section(SectionKind::Text).into()),
+            (".text", Decl::section(SectionKind::Text).with_executable(true).with_loaded(true).into()),
+            // however linking to empty maps does not result in "faulty map" error?
+            // TODO: Check what constitutes "map usage" in asm_files.cpp#L82
+            //("main", Decl::function().into()),
+            //("maps", Decl::data().into()),
+            //("maps", Decl::section(SectionKind::Data).into()),
         ];
 
         obj.declarations(declarations.into_iter())?;
@@ -67,6 +74,10 @@ impl ElfParser {
 
         // Then define the eBPF program under ".text"
         obj.define(".text", byte_code.to_vec())?;
+        //obj.define("main", byte_code.to_vec())?;
+        //obj.define("maps", byte_code.to_vec())?;
+
+        //obj.link(Link { from: "main", to: "maps", at: 0 })?;
 
         // Write to the path
         obj.write(file)?;
