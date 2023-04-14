@@ -31,6 +31,9 @@ impl EbpfGenerator<'_> {
     pub fn generate_program(&mut self) -> BpfCode{
 
         match self.strategy {
+            "InitZero" => {
+                self.init_zero();
+            },
             "Random" => {
                 self.random_instructs();
             },
@@ -43,6 +46,10 @@ impl EbpfGenerator<'_> {
         self.prog.exit().push();
 
         self.prog.clone()
+    }
+
+    fn init_zero(&mut self) {
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
     }
 
     fn random_instructs(&mut self) {
