@@ -24,17 +24,17 @@ All submodules were installed/compiled by following the README.md provided by th
 The PREVAIL and uBPF submodules have some required dependencies.
 
 - Pull code for the eBPF fuzzer and its submodules
-  - git clone --recurse-submodules https://github.com/m-tolstrup/ubpf-fuzz/
-  - git submodule update --remote rbpf
-  - git submodule update --remote refuzzer/faerie
+  - `git clone --recurse-submodules https://github.com/m-tolstrup/ubpf-fuzz/`
+  - `git submodule update --remote rbpf`
+  - `git submodule update --remote refuzzer/faerie`
 - Build the [PREVAIL verifier](https://github.com/vbpf/ebpf-verifier) submodule
-  - cmake -B build -DCMAKE_BUILD_TYPE=Release
-  - cmake --build build
+  - `cmake -B build -DCMAKE_BUILD_TYPE=Release`
+  - `cmake --build build`
 - Build the [uBPF](https://github.com/iovisor/ubpf) submodule
-  - cmake -S . -B build -DUBPF_ENABLE_TESTS=true
-  - cmake --build build --config Debug
-  - make -C vm
-  - sudo make -C vm install
+  - `cmake -S . -B build -DUBPF_ENABLE_TESTS=true`
+  - `cmake --build build --config Debug`
+  - `make -C vm`
+  - `sudo make -C vm install`
 - Run the ubpf-fuzz user-space eBPF fuzzing harness 
-  - cd refuzzer
-  - cargo +nightly fuzz run first
+  - `cd refuzzer`
+  - `cargo +nightly fuzz run first`
