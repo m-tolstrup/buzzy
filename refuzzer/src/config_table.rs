@@ -18,29 +18,13 @@ impl ConfigTable {
 
 	pub fn get_rand_dst_reg(self) -> u8 {
 		// TODO should not be completly random? Context matters
-		let reg: u8 = match rand::thread_rng().gen_range(0..6) {
-			0 => u8::from(0),
-			1 => u8::from(1),
-			2 => u8::from(2),
-			3 => u8::from(3),
-			4 => u8::from(4),
-			5 => u8::from(5),
-			_ => unreachable!(),
-		};
+		let reg: u8 = rand::thread_rng().gen_range(0..6);
 		reg
 	}
 
 	pub fn get_rand_src_reg(self) -> u8 {
 		// TODO should not be completly random? Context matters
-		let reg: u8 = match rand::thread_rng().gen_range(0..6) {
-			0 => u8::from(0),
-			1 => u8::from(1),
-			2 => u8::from(2),
-			3 => u8::from(3),
-			4 => u8::from(4),
-			5 => u8::from(5),
-			_ => unreachable!(),
-		};
+		let reg: u8 = rand::thread_rng().gen_range(0..6);
 		reg
 	}
 
