@@ -10,3 +10,4 @@ rbpf = { path = "../rbpf" }
 faerie = { path = "faerie" }
 target-lexicon = "0.12.2"
 anyhow = "1.0.69"
+rand = "0.8.5"
