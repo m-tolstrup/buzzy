@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 rbpf = { path = "../rbpf" }
-faerie = { path = "/faerie" }
+faerie = { path = "faerie" }
 target-lexicon = "0.12.2"
 anyhow = "1.0.69"
