@@ -45,7 +45,7 @@ impl ElfParser {
 
         // Set target
         let target = Triple {
-            architecture: Architecture::X86_64,
+            architecture: Architecture::Bpfel,
             vendor: Vendor::Unknown,
             operating_system: OperatingSystem::Linux,
             environment: Environment::Unknown,

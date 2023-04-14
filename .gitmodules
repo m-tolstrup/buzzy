@@ -8,5 +8,9 @@
 	ignore = dirty
 [submodule "rbpf"]
 	path = rbpf
-	url = https://github.com/m-tolstrup/rbpf.git
+	url = https://github.com/m-tolstrup/rbpf
+	branch = master
+[submodule "refuzzer/faerie"]
+	path = refuzzer/faerie
+	url = https://github.com/tobashi/faerie
 	branch = master
