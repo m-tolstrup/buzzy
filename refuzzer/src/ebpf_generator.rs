@@ -56,10 +56,11 @@ impl EbpfGenerator<'_> {
             }
 
             // Weighted to match number of available instructions
-            match rand::thread_rng().gen_range(0..19) {
-                0..13  => self.select_random_ALU_instr(),
+            match rand::thread_rng().gen_range(0..20) {
+                0..13  => self.select_random_alu_instr(),
                 13..15 => self.select_random_store_instr(),
                 15..19 => self.select_random_load_instr(),
+                19..20 => self.select_random_jump_instr(),
                 _      => !unreachable!(),
             }
 
@@ -67,7 +68,7 @@ impl EbpfGenerator<'_> {
         }
     }
 
-    fn select_random_ALU_instr(&mut self) {
+    fn select_random_alu_instr(&mut self) {
 
         let dst: u8 = self.config_table.get_rand_dst_reg();
         let src: u8 = self.config_table.get_rand_src_reg();
@@ -148,7 +149,7 @@ impl EbpfGenerator<'_> {
             _ => !unreachable!(),
         };
 
-        // Handle absolute and indirect
+        // TODO handle absolute and indirect
         let instruction = match rand::thread_rng().gen_range(0..4) {
             0 => self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset),
             1 => self.prog.load_abs(mem_size).set_dst(dst),
@@ -158,6 +159,47 @@ impl EbpfGenerator<'_> {
         };
 
         instruction.push();
+    }
+
+    pub fn select_random_jump_instr(&mut self) {
+
+        let dst: u8 = self.config_table.get_rand_dst_reg();
+        let src: u8 = self.config_table.get_rand_src_reg();
+        let imm: i32 = self.config_table.get_rand_imm();
+        let offset: i16 = self.config_table.get_rand_offset();
+
+        let condition: Cond = match rand::thread_rng().gen_range(0..11) {
+            0  => Cond::BitAnd,
+            1  => Cond::Equals,
+            2  => Cond::Greater,
+            3  => Cond::GreaterEquals,
+            4  => Cond::GreaterEqualsSigned,
+            5  => Cond::GreaterSigned,
+            6  => Cond::Lower,
+            7  => Cond::LowerEquals,
+            8  => Cond::LowerEqualsSigned,
+            9 => Cond::LowerSigned,
+            10 => Cond::NotEquals,
+            _  => !unreachable!(),
+        };
+
+        let source: Source = match rand::thread_rng().gen_range(0..2) {
+            0 => Source::Imm,
+            1 => Source::Reg,
+            _ => !unreachable!(),
+        };
+
+        let instruction = match rand::thread_rng().gen_range(0..12) {
+            0..11  => self.prog.jump_unconditional().set_dst(dst).set_src(src).set_imm(imm).set_off(offset),
+            11..12 => self.prog.jump_conditional(condition, source).set_dst(dst),
+            _ => !unreachable!(),
+        };
+
+        match source {
+            Source::Imm => instruction.set_imm(imm).set_off(offset).push(),
+            Source::Reg => instruction.set_src(src).set_off(offset).push(),
+            _ => !unreachable!(),
+        };
     }
 
 }
