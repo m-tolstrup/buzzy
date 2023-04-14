@@ -47,7 +47,7 @@ impl EbpfGenerator<'_> {
 
     fn random_instructs(&mut self) {
 
-        // Always initialize zero - lets more program through verifier
+        // Always initialize zero - lets more programs through the verifier
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
         
         loop {
@@ -67,14 +67,14 @@ impl EbpfGenerator<'_> {
         let src: u8 = self.config_table.get_rand_src_reg();
         let imm: i32 = self.config_table.get_rand_imm();
 
-        // Select the source type, either register or immediate
+        // Select the source type
         let source: Source = match rand::thread_rng().gen_range(0..2) {
             0 => Source::Imm,
             1 => Source::Reg,
             _ => !unreachable!(),
         };
 
-        // Choose a random instruction and set the source
+        // Choose a random instruction and set the destination register
         let instruction = match rand::thread_rng().gen_range(0..4) {
             0 => self.prog.add(source, Arch::X64).set_dst(dst),
             1 => self.prog.sub(source, Arch::X64).set_dst(dst),
