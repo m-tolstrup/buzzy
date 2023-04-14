@@ -55,13 +55,17 @@ impl EbpfGenerator<'_> {
                 break;
             }
 
-            self.select_random_instr();
-            
+            match rand::thread_rng().gen_range(0..4) {
+                0..2 => self.select_random_ALU_instr(),
+                2..4 => self.select_random_ALU_instr(),
+                _    => !unreachable!(),
+            }
+
             self.config_table.random_instr_count -= 1;
         }
     }
 
-    fn select_random_instr(&mut self) {
+    fn select_random_ALU_instr(&mut self) {
 
         let dst: u8 = self.config_table.get_rand_dst_reg();
         let src: u8 = self.config_table.get_rand_src_reg();
@@ -74,13 +78,23 @@ impl EbpfGenerator<'_> {
             _ => !unreachable!(),
         };
 
-        // Choose a random instruction and set the destination register
-        let instruction = match rand::thread_rng().gen_range(0..4) {
-            0 => self.prog.add(source, Arch::X64).set_dst(dst),
-            1 => self.prog.sub(source, Arch::X64).set_dst(dst),
-            2 => self.prog.mul(source, Arch::X64).set_dst(dst),
-            3 => self.prog.div(source, Arch::X64).set_dst(dst),
-            _ => !unreachable!(),
+        // Choose a random (ALU) instruction and set the destination register
+        // TODO swap bytes is missing
+        let instruction = match rand::thread_rng().gen_range(0..13) {
+            0  => self.prog.add(source, Arch::X64).set_dst(dst),
+            1  => self.prog.sub(source, Arch::X64).set_dst(dst),
+            2  => self.prog.mul(source, Arch::X64).set_dst(dst),
+            3  => self.prog.div(source, Arch::X64).set_dst(dst),
+            4  => self.prog.modulo(source, Arch::X64).set_dst(dst),
+            5  => self.prog.bit_or(source, Arch::X64).set_dst(dst),
+            6  => self.prog.bit_xor(source, Arch::X64).set_dst(dst),
+            7  => self.prog.bit_and(source, Arch::X64).set_dst(dst),
+            8  => self.prog.left_shift(source, Arch::X64).set_dst(dst),
+            9  => self.prog.right_shift(source, Arch::X64).set_dst(dst),
+            10 => self.prog.signed_right_shift(source, Arch::X64).set_dst(dst),
+            11 => self.prog.mov(source, Arch::X64).set_dst(dst),
+            12 => self.prog.negate(Arch::X64).set_dst(dst),
+            _  => !unreachable!(),
         };
 
         // Then, depending on the source type, set the value of the source and push it
