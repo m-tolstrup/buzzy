@@ -149,11 +149,11 @@ impl EbpfGenerator<'_> {
             _ => !unreachable!(),
         };
 
-        // TODO handle absolute and indirect
+        // TODO maybe delete abs and ind? Kernel docs says they are legacy
         let instruction = match rand::thread_rng().gen_range(0..4) {
             0 => self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset),
-            1 => self.prog.load_abs(mem_size).set_dst(dst),
-            2 => self.prog.load_ind(mem_size).set_dst(dst),
+            1 => self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset),
+            2 => self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset),
             3 => self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset),
             _ => !unreachable!(),
         };
@@ -178,7 +178,7 @@ impl EbpfGenerator<'_> {
             6  => Cond::Lower,
             7  => Cond::LowerEquals,
             8  => Cond::LowerEqualsSigned,
-            9 => Cond::LowerSigned,
+            9  => Cond::LowerSigned,
             10 => Cond::NotEquals,
             _  => !unreachable!(),
         };
@@ -189,16 +189,17 @@ impl EbpfGenerator<'_> {
             _ => !unreachable!(),
         };
 
+        // Weighted to match number of jump instructions
         let instruction = match rand::thread_rng().gen_range(0..12) {
-            0..11  => self.prog.jump_unconditional().set_dst(dst).set_src(src).set_imm(imm).set_off(offset),
-            11..12 => self.prog.jump_conditional(condition, source).set_dst(dst),
-            _ => !unreachable!(),
+            0..1  => self.prog.jump_unconditional().set_dst(dst).set_src(src).set_imm(imm).set_off(offset),
+            1..12 => self.prog.jump_conditional(condition, source).set_dst(dst),
+            _     => !unreachable!(),
         };
 
         match source {
             Source::Imm => instruction.set_imm(imm).set_off(offset).push(),
             Source::Reg => instruction.set_src(src).set_off(offset).push(),
-            _ => !unreachable!(),
+            _           => !unreachable!(),
         };
     }
 
