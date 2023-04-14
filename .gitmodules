@@ -13,3 +13,4 @@
 [submodule "refuzzer/faerie"]
 	path = refuzzer/faerie
 	url = https://github.com/tobashi/faerie
+	branch = master
