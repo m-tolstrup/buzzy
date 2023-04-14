@@ -55,10 +55,12 @@ impl EbpfGenerator<'_> {
                 break;
             }
 
-            match rand::thread_rng().gen_range(0..4) {
-                0..2 => self.select_random_ALU_instr(),
-                2..4 => self.select_random_ALU_instr(),
-                _    => !unreachable!(),
+            // Weighted to match number of available instructions
+            match rand::thread_rng().gen_range(0..19) {
+                0..13  => self.select_random_ALU_instr(),
+                13..15 => self.select_random_store_instr(),
+                15..19 => self.select_random_load_instr(),
+                _      => !unreachable!(),
             }
 
             self.config_table.random_instr_count -= 1;
@@ -103,6 +105,59 @@ impl EbpfGenerator<'_> {
             Source::Reg => instruction.set_src(src).push(),
             _ => !unreachable!(),
         };
+    }
+
+    pub fn select_random_store_instr(&mut self) {
+
+        // "dst" is most likely to be stackpointer (R10) in this context?
+        let dst: u8 = self.config_table.get_rand_dst_reg();
+        let src: u8 = self.config_table.get_rand_src_reg();
+        let imm: i32 = self.config_table.get_rand_imm();
+        let offset: i16 = self.config_table.get_rand_offset();
+
+        let mem_size: MemSize = match rand::thread_rng().gen_range(0..4) {
+            0 => MemSize::Byte,
+            1 => MemSize::HalfWord,
+            2 => MemSize::Word,
+            3 => MemSize::DoubleWord,
+            _ => !unreachable!(),
+        };
+
+        let instruction = match rand::thread_rng().gen_range(0..2) {
+            0 => self.prog.store(mem_size).set_dst(dst).set_imm(imm).set_off(offset),
+            1 => self.prog.store_x(mem_size).set_dst(dst).set_src(src).set_off(offset),
+            _ => !unreachable!(),
+        };
+
+        instruction.push();
+    }
+
+    pub fn select_random_load_instr(&mut self) {
+        
+        let dst: u8 = self.config_table.get_rand_dst_reg();
+        // "src" is most likely to be stackpointer (R10) in this context?
+        let src: u8 = self.config_table.get_rand_src_reg();
+        let imm: i32 = self.config_table.get_rand_imm();
+        let offset: i16 = self.config_table.get_rand_offset();
+
+        let mem_size: MemSize = match rand::thread_rng().gen_range(0..4) {
+            0 => MemSize::Byte,
+            1 => MemSize::HalfWord,
+            2 => MemSize::Word,
+            3 => MemSize::DoubleWord,
+            _ => !unreachable!(),
+        };
+
+        // Handle absolute and indirect
+        let instruction = match rand::thread_rng().gen_range(0..4) {
+            0 => self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset),
+            1 => self.prog.load_abs(mem_size).set_dst(dst),
+            2 => self.prog.load_ind(mem_size).set_dst(dst),
+            3 => self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset),
+            _ => !unreachable!(),
+        };
+
+        instruction.push();
     }
 
 }

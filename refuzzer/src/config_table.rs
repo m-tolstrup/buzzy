@@ -48,4 +48,9 @@ impl ConfigTable {
 		let imm: i32 = rand::thread_rng().gen_range(0..2147483647);
 		imm
 	}
+	
+	pub fn get_rand_offset(self) -> i16 {
+		let imm: i16 = rand::thread_rng().gen_range(0..32767);
+		imm
+	}
 }
