@@ -20,9 +20,10 @@ struct FuzzSeedData {
 
 fuzz_target!(|data: FuzzSeedData| {
     // Generate a program - fuzzed structure provides randomness
-    let strategy = "InitZero";
+    let strategy = "Random";
     let mut generator = EbpfGenerator::new(data.seed, strategy);
     let generated_program = generator.generate_program();
+    let verbose = false;
 
     // Pass it to the parser and parse it
     let parser = ElfParser::new(generated_program);
@@ -53,13 +54,28 @@ fuzz_target!(|data: FuzzSeedData| {
                  .args(&["../obj-files/data.o"])
                  .output()
                  .expect("failed to execute process");
-    }
-    
-    // If no errors occur when running, unwrap stdout.
-    // io::stdout().write_all(&verify_output.stdout).unwrap();
-    // io::stdout().write_all(&execute_output.stdout).unwrap();
 
-    // If any errors occur when running, unwrap stderr instead.
-    // io::stderr().write_all(&verify_output.stderr).unwrap();
-    // io::stderr().write_all(&execute_output.stderr).unwrap();
+        let str_e_output = String::from_utf8(execute_output.stdout).unwrap();
+
+        if str_e_output.starts_with("0x"){
+            if verbose == true{
+                println!("uBPF result: {}", str_e_output);
+            }
+            //TODO: Check for memory bugs if PREVAIL="1" and uBPF="0x ..."
+        }
+        else {
+            if verbose == true{
+                let str_e_error = String::from_utf8(execute_output.stderr).unwrap();
+                println!("uBPF error: {}", str_e_error);
+            }
+            //TODO: Log eBPF program if PREVAIL="1" and uBPF=error
+        }
+    }
+    //might not be interesting
+    //else {
+    //    if verbose == true{
+    //        let str_v_error = String::from_utf8(verify_output.stderr).unwrap();
+    //        println!("PREVAIL error: {}", str_v_error);
+    //    }
+    //}
 });
