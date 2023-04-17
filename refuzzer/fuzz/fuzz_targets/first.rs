@@ -45,22 +45,21 @@ fuzz_target!(|data: FuzzSeedData| {
                  .output()
                  .expect("failed to execute process");
 
-    // Execute the eBPF program with uBPF (-j flag for JIT compile)
-    let execute_output = Command::new("../ubpf/vm/test")
+    let str_v_output = String::from_utf8(verify_output.stdout).unwrap();
+    
+    if str_v_output.starts_with("1") {
+        // Execute the eBPF program with uBPF (-j flag for JIT compile)
+        let execute_output = Command::new("../ubpf/vm/test")
                  .args(&["../obj-files/data.o"])
                  .output()
                  .expect("failed to execute process");
+    }
     
-    // Status code
-    // println!("output: {}", output.status);
-
-    // TODO: conditional wrap of prints
-
     // If no errors occur when running, unwrap stdout.
-    io::stdout().write_all(&verify_output.stdout).unwrap();
-    io::stdout().write_all(&execute_output.stdout).unwrap();
+    // io::stdout().write_all(&verify_output.stdout).unwrap();
+    // io::stdout().write_all(&execute_output.stdout).unwrap();
 
     // If any errors occur when running, unwrap stderr instead.
-    io::stderr().write_all(&verify_output.stderr).unwrap();
-    io::stderr().write_all(&execute_output.stderr).unwrap();
+    // io::stderr().write_all(&verify_output.stderr).unwrap();
+    // io::stderr().write_all(&execute_output.stderr).unwrap();
 });
