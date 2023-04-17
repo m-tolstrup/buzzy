@@ -48,6 +48,7 @@ fuzz_target!(|data: FuzzSeedData| {
 
     let str_v_output = String::from_utf8(verify_output.stdout).unwrap();
     
+    // PREVAIL outputs 0 for invalid, and 1 for valid eBPF programs
     if str_v_output.starts_with("1") {
         // Execute the eBPF program with uBPF (-j flag for JIT compile)
         let execute_output = Command::new("../ubpf/vm/test")
@@ -57,23 +58,24 @@ fuzz_target!(|data: FuzzSeedData| {
 
         let str_e_output = String::from_utf8(execute_output.stdout).unwrap();
 
-        if str_e_output.starts_with("0x"){
-            if verbose == true{
+        // uBPF outputs PRIx64 string, encoding memory and memory length if the program was executed
+        if str_e_output.starts_with("0x") {
+            if verbose == true {
                 println!("uBPF result: {}", str_e_output);
             }
-            //TODO: Check for memory bugs if PREVAIL="1" and uBPF="0x ..."
+            // TODO: Check for memory bugs if PREVAIL="1" and uBPF="0x ..."
         }
-        else {
-            if verbose == true{
+        else { // Hitting this branch should not happen, but we mean that PREVAIL or uBPF has a bug? (Inconsistent at least)
+            if verbose == true {
                 let str_e_error = String::from_utf8(execute_output.stderr).unwrap();
                 println!("uBPF error: {}", str_e_error);
             }
-            //TODO: Log eBPF program if PREVAIL="1" and uBPF=error
+            // TODO: Log eBPF program if PREVAIL="1" and uBPF=error (Very bad)
         }
     }
-    //might not be interesting
+    // Might not be interesting (might happen often)
     //else {
-    //    if verbose == true{
+    //    if verbose == true {
     //        let str_v_error = String::from_utf8(verify_output.stderr).unwrap();
     //        println!("PREVAIL error: {}", str_v_error);
     //    }
