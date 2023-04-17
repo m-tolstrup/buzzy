@@ -37,4 +37,4 @@ The PREVAIL and uBPF submodules have some required dependencies.
   - `sudo make -C vm install`
 - Run the ubpf-fuzz user-space eBPF fuzzing harness 
   - `cd refuzzer`
-  - `cargo +nightly fuzz run first`
+  - `cargo +nightly fuzz run test/random`
