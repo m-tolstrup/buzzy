@@ -5,7 +5,8 @@ use std::fs;
 use std::fs::File;
 use std::process::Command;
 use std::io::{self, Write};
-use std::time::SystemTime;
+
+use chrono::prelude::*;
 
 use arbitrary;
 use libfuzzer_sys::fuzz_target;
@@ -74,9 +75,10 @@ fuzz_target!(|data: FuzzSeedData| {
                 println!("uBPF error: {}", str_e_error);
             }
             
-            let now = SystemTime::now().to_string();
-            let mut _file = File::create("logs/error" + now + ".o");
-            let _file_write_result = match fs::copy("../obj-files/data.o", "logs/error.o") {
+            let now = Utc::now().to_string();
+            let file_name = "logs/error".to_owned() + &now + ".o";
+            let mut _file = File::create(file_name.clone());
+            let _file_write_result = match fs::copy("../obj-files/data.o", file_name) {
                 Ok(_) => {
                     // Do nothing, everything went Ok
                 },
