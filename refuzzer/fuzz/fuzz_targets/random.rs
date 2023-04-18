@@ -5,6 +5,7 @@ use std::fs;
 use std::fs::File;
 use std::process::Command;
 use std::io::{self, Write};
+use std::time::SystemTime;
 
 use arbitrary;
 use libfuzzer_sys::fuzz_target;
@@ -73,18 +74,17 @@ fuzz_target!(|data: FuzzSeedData| {
                 println!("uBPF error: {}", str_e_error);
             }
             
-                // TODO generate log file
-
-                let mut _file = File::create("logs/error.o");
-                let _file_write_result = match fs::copy("../obj-files/data.o", "logs/error.o") {
-                    Ok(_) => {
-                        // Do nothing, everything went Ok
-                    },
-                    Err(_) => {
-                        // Return early, as something went wrong when parsing to .o-file
-                        return;
+            let now = SystemTime::now().to_string();
+            let mut _file = File::create("logs/error" + now + ".o");
+            let _file_write_result = match fs::copy("../obj-files/data.o", "logs/error.o") {
+                Ok(_) => {
+                    // Do nothing, everything went Ok
+                },
+                Err(_) => {
+                    // Return early, as something went wrong when parsing to .o-file
+                    return;
                 }
-    };
+            };
         }
     }
     // Might not be interesting (might happen often)
