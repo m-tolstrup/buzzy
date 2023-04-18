@@ -11,6 +11,7 @@ cargo-fuzz = true
 rbpf = { path = "../../rbpf" }
 arbitrary = { version = "1", features = ["derive"] }
 libfuzzer-sys = "0.4"
+chrono = "0.4.24"
 
 [dependencies.refuzzer]
 path = ".."
