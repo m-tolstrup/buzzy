@@ -81,10 +81,9 @@ fuzz_target!(|data: FuzzSeedData| {
 
             let _file_write_result = match fs::copy("../obj-files/data.o", file_name) {
                 Ok(_) => {
-                    // Do nothing, everything went Ok
+                    // Do nothing
                 },
                 Err(_) => {
-                    // Return early, as something went wrong when parsing to .o-file
                     return;
                 }
             };
