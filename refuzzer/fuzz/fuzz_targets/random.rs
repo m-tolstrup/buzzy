@@ -77,7 +77,8 @@ fuzz_target!(|data: FuzzSeedData| {
             
             let now = Utc::now().to_string();
             let file_name = "logs/error".to_owned() + &now + ".o";
-            let mut _file = File::create(file_name.clone());
+            let _file = File::create(file_name.clone());
+
             let _file_write_result = match fs::copy("../obj-files/data.o", file_name) {
                 Ok(_) => {
                     // Do nothing, everything went Ok
@@ -89,11 +90,4 @@ fuzz_target!(|data: FuzzSeedData| {
             };
         }
     }
-    // Might not be interesting (might happen often)
-    //else {
-    //    if verbose == true {
-    //        let str_v_error = String::from_utf8(verify_output.stderr).unwrap();
-    //        println!("PREVAIL error: {}", str_v_error);
-    //    }
-    //}
 });

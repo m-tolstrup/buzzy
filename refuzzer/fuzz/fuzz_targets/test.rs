@@ -28,7 +28,7 @@ fuzz_target!(|data: FuzzSeedData| {
 
     // Pass it to the parser and parse it
     let parser = ElfParser::new(generated_program);
-    let _ = match parser.parse_prog() {
+    let _parser_result = match parser.parse_prog() {
         Ok(_) => {
             // Do nothing, everything went Ok
         },
@@ -71,14 +71,20 @@ fuzz_target!(|data: FuzzSeedData| {
                 let str_e_error = String::from_utf8(execute_output.stderr).unwrap();
                 println!("uBPF error: {}", str_e_error);
             }
-            // TODO: Log eBPF program if PREVAIL="1" and uBPF=error (Very bad)
+            
+            let now = Utc::now().to_string();
+            let file_name = "logs/error".to_owned() + &now + ".o";
+            let _file = File::create(file_name.clone());
+
+            let _file_write_result = match fs::copy("../obj-files/data.o", file_name) {
+                Ok(_) => {
+                    // Do nothing, everything went Ok
+                },
+                Err(_) => {
+                    // Return early, as something went wrong when parsing to .o-file
+                    return;
+                }
+            };
         }
     }
-    // Might not be interesting (might happen often)
-    //else {
-    //    if verbose == true {
-    //        let str_v_error = String::from_utf8(verify_output.stderr).unwrap();
-    //        println!("PREVAIL error: {}", str_v_error);
-    //    }
-    //}
 });
