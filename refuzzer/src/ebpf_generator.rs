@@ -17,7 +17,7 @@ use rbpf::insn_builder::{
 use crate::config_table::ConfigTable;
 
 pub struct EbpfGenerator<'a> {
-    prog: BpfCode,
+    pub prog: BpfCode,
     config_table: ConfigTable,
     strategy: &'a str,
 }
@@ -31,7 +31,7 @@ impl EbpfGenerator<'_> {
         }
     }
 
-    pub fn generate_program(&mut self) -> BpfCode{
+    pub fn generate_program(&mut self) {
 
         match self.strategy {
             "InitZero" => {
@@ -47,8 +47,6 @@ impl EbpfGenerator<'_> {
 
         // Always push exit instruction
         self.prog.exit().push();
-
-        self.prog.clone()
     }
 
     fn init_zero(&mut self) {
