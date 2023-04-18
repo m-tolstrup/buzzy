@@ -2,6 +2,7 @@
 #![allow(unused_imports)]
 
 use std::fs;
+use std::fs::File;
 use std::process::Command;
 use std::io::{self, Write};
 
@@ -28,7 +29,7 @@ fuzz_target!(|data: FuzzSeedData| {
 
     // Pass it to the parser and parse it
     let parser = ElfParser::new(generated_program);
-    let _ = match parser.parse_prog() {
+    let _parser_result = match parser.parse_prog() {
         Ok(_) => {
             // Do nothing, everything went Ok
         },
@@ -71,7 +72,19 @@ fuzz_target!(|data: FuzzSeedData| {
                 let str_e_error = String::from_utf8(execute_output.stderr).unwrap();
                 println!("uBPF error: {}", str_e_error);
             }
-            // TODO: Log eBPF program if PREVAIL="1" and uBPF=error (Very bad)
+            
+                // TODO generate log file
+
+                let mut _file = File::create("logs/error.o");
+                let _file_write_result = match fs::copy("../obj-files/data.o", "logs/error.o") {
+                    Ok(_) => {
+                        // Do nothing, everything went Ok
+                    },
+                    Err(_) => {
+                        // Return early, as something went wrong when parsing to .o-file
+                        return;
+                }
+    };
         }
     }
     // Might not be interesting (might happen often)
