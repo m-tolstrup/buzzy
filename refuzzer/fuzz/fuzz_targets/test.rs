@@ -22,7 +22,8 @@ fuzz_target!(|data: FuzzSeedData| {
     // Generate a program - fuzzed structure provides randomness
     let strategy = "InitZero";
     let mut generator = EbpfGenerator::new(data.seed, strategy);
-    let generated_program = generator.generate_program();
+    generator.generate_program();
+    let generated_program = generator.prog;
     let verbose = false;
 
     // Pass it to the parser and parse it
