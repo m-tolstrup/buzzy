@@ -1,4 +1,7 @@
 #![allow(unused_imports)]
+#![allow(unreachable_code)]
+#![allow(unreachable_patterns)]
+
 use rand::prelude::*;
 
 use rbpf::insn_builder::{
@@ -35,7 +38,7 @@ impl EbpfGenerator<'_> {
                 self.init_zero();
             },
             "Random" => {
-                self.random_instructs();
+                self.random_instructions();
             },
             _ => {
                 //Nothing
@@ -52,7 +55,7 @@ impl EbpfGenerator<'_> {
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
     }
 
-    fn random_instructs(&mut self) {
+    fn random_instructions(&mut self) {
 
         // Always initialize zero - lets more programs through the verifier
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
