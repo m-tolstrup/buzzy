@@ -157,24 +157,21 @@ impl EbpfGenerator<'_> {
             _ => !unreachable!(),
         };
 
-        match mem_size {
-            MemSize::DoubleWord => {
-                self.generate_ld(mem_size, dst, src, imm, offset);
-                self.generate_ld(mem_size, dst, src, imm, offset);
-            }
-            _ => {self.generate_ld(mem_size, dst, src, imm, offset);}
-        };
-    }
-
-    fn generate_ld (&mut self, mem_size: MemSize, dst: u8, src: u8, imm: i32, offset: i16) {
-        // TODO maybe delete abs and ind? Kernel docs says they are legacy
         match rand::thread_rng().gen_range(0..4) {
-            0 => self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push(),
-            1 => self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset).push(),
-            2 => self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset).push(),
-            3 => self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset).push(),
-            _ => !unreachable!(),
-        };   
+            0 => {
+                match mem_size {
+                    MemSize::DoubleWord => {
+                        self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();
+                        self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();
+                    },
+                    _ => {self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();}
+                };
+            },
+            1 => {self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
+            2 => {self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
+            3 => {self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
+            _ => {!unreachable!();},
+        };
     }
 
     pub fn select_random_jump_instr(&mut self) {
