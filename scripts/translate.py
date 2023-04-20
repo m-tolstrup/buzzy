@@ -1,14 +1,14 @@
 import os
+import subprocess
 
 # Run this from the script folder, or change the path here
 # Path is relative from your current working directory
 path = os.path.join('..', 'refuzzer', 'src', 'bin', 'translate.rs')
 
 # Paste your bytecode here
-elf_bytes = "b702 0000 0000 0000\
-             bf21 0000 0000 0000\
-             8510 0000 ffff ffff\
-             8510 0000 ffff ffff\
+elf_bytes = "b700 0000 0000 0000\
+             1802 181a 7848 9b5c\
+             1f01 0000 0000 0000\
              9500 0000 0000 0000"
 
 write_str = "use rbpf::disassembler;\n\n"
@@ -42,3 +42,11 @@ write_str += "}\n"
 
 with open(path, 'w') as file:
     file.write(write_str)
+
+try:
+    cmd_str = "cargo run --bin translate"
+    path = os.path.join("..", "refuzzer")
+    os.chdir(path)
+    subprocess.run(cmd_str, shell=True)
+except:
+    print("Exception during 'cargo run --bin translate'")
