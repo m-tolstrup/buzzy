@@ -1,10 +1,16 @@
 import os
+import sys
 import subprocess
 
-# Set path of the .o file
-o_path = os.path.join("..", "refuzzer", "logs", "error1681822839119.o")
-# Set the number of instructions to read here
-instr_count = 4
+
+if sys.argv:
+    o_path = os.path.join(*sys.argv[1].split("/"))
+    instr_count = int(sys.argv[2])
+else:
+    # Set path of the .o file
+    o_path = os.path.join("..", "refuzzer", "logs", "error1681822839119.o")
+    # Set the number of instructions to read here
+    instr_count = 4
 
 # Run this from the script folder, or change the path here
 # Path is relative from your current working directory
