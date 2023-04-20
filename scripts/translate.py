@@ -40,11 +40,11 @@ for b in elf_bytes:
     count += 1
     write_str += hex(b) + ", "
     if count == 8:
-        write_str += "\n"
+        write_str += "\n\t\t"
         count = 0
 
 # More boilerpalte
-write_str += "\n\t];\n\n"
+write_str += "];\n\n"
 write_str += "\tdisassembler::disassemble(prog);\n"
 write_str += "}\n"
 
