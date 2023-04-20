@@ -1,40 +1,32 @@
 import os
 import subprocess
 
+# Set path of the .o file
+o_path = os.path.join("..", "refuzzer", "logs", "error1681822839119.o")
+# Set the number of instructions to read here
+instr_count = 4
+
 # Run this from the script folder, or change the path here
 # Path is relative from your current working directory
 path = os.path.join('..', 'refuzzer', 'src', 'bin', 'translate.rs')
 
-# Paste your bytecode here
-elf_bytes = "b700 0000 0000 0000\
-             1802 181a 7848 9b5c\
-             1f01 0000 0000 0000\
-             9500 0000 0000 0000"
+elf_bytes = b""
+with open(o_path, 'rb') as file:
+    file.read(64)
+    elf_bytes += file.read(instr_count * 8)
 
 write_str = "use rbpf::disassembler;\n\n"
 write_str += "// cargo run --bin translate\n\n"
 write_str += "fn main () {\n"
 write_str += "\tlet prog = &[\n\t\t"
 
-odd = True
-accum = ""
 count = 0
-
 for b in elf_bytes:
-    if b == " ":
-        continue
-    if odd:
-        accum += str(b)
-        odd = False
-    else:
-        if count == 8:
-            write_str += "\n\t\t"
-            count = 0
-        count += 1
-        accum += str(b)
-        write_str += "0x" + accum + ", "
-        odd = True
-        accum = ""
+    count += 1
+    write_str += hex(b) + ", "
+    if count == 8:
+        write_str += "\n"
+        count = 0
 
 write_str += "\n\t];\n\n"
 write_str += "\tdisassembler::disassemble(prog);\n"
