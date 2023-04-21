@@ -30,7 +30,7 @@ except:
 
 # Rust boilerplate
 write_str = "use rbpf::disassembler;\n\n"
-write_str += "// cargo run --bin translate\n\n"
+write_str += "// cargo +nightly run --bin translate\n\n"
 write_str += "fn main () {\n"
 write_str += "\tlet prog = &[\n\t\t"
 
@@ -57,7 +57,7 @@ except:
 
 # Run command to run the translation
 try:
-    cmd_str = "cargo run --bin translate"
+    cmd_str = "cargo +nightly run --bin translate"
     path = os.path.join("..", "refuzzer")
     os.chdir(path)
     subprocess.run(cmd_str, shell=True)
