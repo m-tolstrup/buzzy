@@ -1,6 +1,6 @@
 [submodule "ubpf"]
 	path = ubpf
-	url = https://github.com/iovisor/ubpf
+	url = https://github.com/tobashi/ubpf
 	branch = main
 [submodule "ebpf-verifier"]
 	path = ebpf-verifier
