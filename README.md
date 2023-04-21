@@ -39,3 +39,9 @@ The PREVAIL and uBPF submodules have some required dependencies.
 - Run the ubpf-fuzz user-space eBPF fuzzing harness 
   - `cd refuzzer`
   - `cargo +nightly fuzz run test/random`
+
+## Trophies
+ubpf-fuzz has found the following bugs:
+
+- [Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/microsoft/ebpf-for-windows/issues/2362)
+
