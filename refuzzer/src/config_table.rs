@@ -10,7 +10,11 @@ pub struct ConfigTable {
 impl ConfigTable {
 	pub fn new(_seed: u32, _random_choices: u8) -> ConfigTable {
 		ConfigTable {
-			select_edge_cases: _random_choices & (1 << 0) != 0,
+			// ***** VARIABLES MANUALLY SET FOR EXPERIMENTS ***** //
+			select_edge_cases: true,
+			// select_edge_cases: _random_choices & (1 << 0) != 0,
+
+			// ***** VARIABLES FOR RANDOM CHOICES ***** //
 			seed: _seed,
 			// Max instruction size is 512, i.e. 9 bits
 			// Change here if you want more or fewer instructions
