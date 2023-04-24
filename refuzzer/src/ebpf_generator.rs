@@ -23,10 +23,10 @@ pub struct EbpfGenerator<'a> {
 }
 
 impl EbpfGenerator<'_> {
-    pub fn new(_seed: u32, _strategy: &str) -> EbpfGenerator {
+    pub fn new(_seed: u32, _random_choices: u8, _strategy: &str) -> EbpfGenerator {
         EbpfGenerator { 
             prog: BpfCode::new(),
-            config_table: ConfigTable::new(_seed),
+            config_table: ConfigTable::new(_seed, _random_choices),
             strategy: _strategy,
         }
     }

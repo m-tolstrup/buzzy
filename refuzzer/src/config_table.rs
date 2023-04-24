@@ -2,13 +2,15 @@ use rand::prelude::*;
 
 #[derive(Clone, Copy)]
 pub struct ConfigTable {
+	select_edge_cases: bool,
 	pub seed: u32,
 	pub random_instr_count: u32,
 }
 
 impl ConfigTable {
-	pub fn new(_seed: u32) -> ConfigTable {
+	pub fn new(_seed: u32, _random_choices: u8) -> ConfigTable {
 		ConfigTable {
+			select_edge_cases: _random_choices & (1 << 0) != 0,
 			seed: _seed,
 			// Max instruction size is 512, i.e. 9 bits
 			// Change here if you want more or fewer instructions
@@ -29,12 +31,30 @@ impl ConfigTable {
 	}
 
 	pub fn get_rand_imm(self) -> i32 {
-		let imm: i32 = rand::thread_rng().gen_range(0..2147483647);
+		let imm: i32;
+		if self.select_edge_cases {
+			imm = match rand::thread_rng().gen_range(0..2) {
+				0 => 0,
+				1 => 2147483647,
+				_ => unreachable!()
+			};
+		} else {
+			imm = rand::thread_rng().gen_range(0..2147483647);
+		}
 		imm
 	}
 	
 	pub fn get_rand_offset(self) -> i16 {
-		let imm: i16 = rand::thread_rng().gen_range(0..32767);
-		imm
+		let offset: i16;
+		if self.select_edge_cases {
+			offset = match rand::thread_rng().gen_range(0..2) {
+				0 => 0,
+				1 => 32767,
+				_ => unreachable!()
+			};
+		} else {
+			offset = rand::thread_rng().gen_range(0..32767);
+		}
+		offset
 	}
 }
