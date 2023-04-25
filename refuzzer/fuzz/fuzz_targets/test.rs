@@ -2,8 +2,11 @@
 #![allow(unused_imports)]
 
 use std::fs;
+use std::fs::File;
 use std::process::Command;
 use std::io::{self, Write};
+
+use chrono::{Utc, DateTime};
 
 use arbitrary;
 use libfuzzer_sys::fuzz_target;
@@ -27,7 +30,7 @@ fuzz_target!(|data: FuzzSeedData| {
     let verbose = false;
 
     // Pass it to the parser and parse it
-    let parser = ElfParser::new(generated_program);
+    let parser = ElfParser::new(generated_program, strategy);
     let _parser_result = match parser.parse_prog() {
         Ok(_) => {
             // Do nothing, everything went Ok
@@ -72,11 +75,11 @@ fuzz_target!(|data: FuzzSeedData| {
                 println!("uBPF error: {}", str_e_error);
             }
             
-            let now = Utc::now().to_string();
+            let now = Utc::now().timestamp_millis().to_string();
             let file_name = "logs/error".to_owned() + &now + ".o";
             let _file = File::create(file_name.clone());
 
-            let _file_write_result = match fs::copy("../obj-files/data.o", file_name) {
+            let _file_write_result = match fs::copy("obj-files/data.o", file_name) {
                 Ok(_) => {
                     // Do nothing
                 },
