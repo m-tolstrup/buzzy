@@ -78,7 +78,7 @@ impl ConfigTable {
 		}
 	}
 
-	pub fn get_rand_imm(self) -> i32 {
+	pub fn get_rand_imm(&self) -> i32 {
 		// Return a random immediate
 		let imm: i32;
 		if self.select_edge_cases {
@@ -93,7 +93,7 @@ impl ConfigTable {
 		imm
 	}
 	
-	pub fn get_rand_offset(self) -> i16 {
+	pub fn get_rand_offset(&self) -> i16 {
 		// Return a random offset
 		let offset: i16;
 		if self.select_edge_cases {
@@ -112,12 +112,12 @@ impl ConfigTable {
 		offset
 	}
 
-	pub fn stack_to_top(self) -> u16 {
+	pub fn stack_to_top(&self) -> u16 {
 		// Return number of bytes needed to set stack pointer at the top of the stack
 		512 - self.stack_pointer_position
 	}
 
-	pub fn stack_to_bottom(self) -> u16 {
+	pub fn stack_to_bottom(&self) -> u16 {
 		// Return number of bytes needed to set stack pointer at the bottom of the stack
 		self.stack_pointer_position
 	}
@@ -126,32 +126,32 @@ impl ConfigTable {
 		// Check if the stack pointer can be moved the chosen number of bytes - then move it
 		if number > 0 && self.stack_pointer_position + number <= 512 {
 				self.stack_pointer_position += number;
-		} else if self.stack_pointer_position - number >= 0 {
+		} else {
 			self.stack_pointer_position -= number;
 		}
 	}
 
 	pub fn push_value_to_stack(&mut self, mem_size: MemSize) {
-		// Find number of bytes pushed to the stack and track it
 		let bytes: u16 = match mem_size {
-			MemSize::Byte       => 1,
+			MemSize::Byte 	    => 1,
 			MemSize::HalfWord   => 2,
 			MemSize::Word       => 4,
 			MemSize::DoubleWord => 8,
 		};
 
+		// TODO maybe a check?
 		self.stack_total_size_used += bytes;
 	}
 
 	pub fn pop_value_from_stack(&mut self, mem_size: MemSize) {
-		// Find number of bytes popped from the stack and track it
 		let bytes: u16 = match mem_size {
-			MemSize::Byte       => 1,
+			MemSize::Byte 	    => 1,
 			MemSize::HalfWord   => 2,
 			MemSize::Word       => 4,
 			MemSize::DoubleWord => 8,
 		};
 
+		// TODO maybe a check?
 		self.stack_total_size_used -= bytes;
 	}
 }
