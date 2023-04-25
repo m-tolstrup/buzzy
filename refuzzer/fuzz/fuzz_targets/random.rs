@@ -30,7 +30,7 @@ fuzz_target!(|data: FuzzSeedData| {
     let verbose = false;
 
     // Pass it to the parser and parse it
-    let parser = ElfParser::new(generated_program);
+    let parser = ElfParser::new(generated_program, strategy);
     let _parser_result = match parser.parse_prog() {
         Ok(_) => {
             // Do nothing, everything went Ok

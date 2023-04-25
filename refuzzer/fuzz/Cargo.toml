@@ -34,3 +34,9 @@ name = "random"
 path = "fuzz_targets/random.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "map_header"
+path = "fuzz_targets/map_header.rs"
+test = false
+doc = false
