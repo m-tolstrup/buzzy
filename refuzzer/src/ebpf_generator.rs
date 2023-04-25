@@ -61,14 +61,16 @@ impl EbpfGenerator<'_> {
 
         // Always initialize zero - lets more programs through the verifier
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
+
+        let mut instr_gen_count: u32 = self.config_table.instr_count;
         
         loop {
-            if self.config_table.random_instr_count == 0 {
+            if instr_gen_count == 0 {
                 break;
             }
 
             // Weighted to match number of available instructions
-            match rand::thread_rng().gen_range(0..20) {
+            match self.config_table.rng.gen_range(0..20) {
                 0..13  => self.select_random_alu_instr(),
                 13..15 => self.select_random_store_instr(),
                 15..19 => self.select_random_load_instr(),
@@ -76,7 +78,7 @@ impl EbpfGenerator<'_> {
                 _      => !unreachable!(),
             }
 
-            self.config_table.random_instr_count -= 1;
+            instr_gen_count -= 1;
         }
     }
 
@@ -87,7 +89,7 @@ impl EbpfGenerator<'_> {
         let imm: i32 = self.config_table.get_rand_imm();
 
         // Select the source type
-        let source: Source = match rand::thread_rng().gen_range(0..2) {
+        let source: Source = match self.config_table.rng.gen_range(0..2) {
             0 => Source::Imm,
             1 => Source::Reg,
             _ => !unreachable!(),
@@ -95,7 +97,7 @@ impl EbpfGenerator<'_> {
 
         // Choose a random (ALU) instruction and set the destination register
         // TODO swap bytes is missing
-        let instruction = match rand::thread_rng().gen_range(0..13) {
+        let instruction = match self.config_table.rng.gen_range(0..13) {
             0  => self.prog.add(source, Arch::X64).set_dst(dst),
             1  => self.prog.sub(source, Arch::X64).set_dst(dst),
             2  => self.prog.mul(source, Arch::X64).set_dst(dst),
@@ -128,7 +130,7 @@ impl EbpfGenerator<'_> {
         let imm: i32 = self.config_table.get_rand_imm();
         let offset: i16 = self.config_table.get_rand_offset();
 
-        let mem_size: MemSize = match rand::thread_rng().gen_range(0..4) {
+        let mem_size: MemSize = match self.config_table.rng.gen_range(0..4) {
             0 => MemSize::Byte,
             1 => MemSize::HalfWord,
             2 => MemSize::Word,
@@ -136,7 +138,7 @@ impl EbpfGenerator<'_> {
             _ => !unreachable!(),
         };
 
-        let instruction = match rand::thread_rng().gen_range(0..2) {
+        let instruction = match self.config_table.rng.gen_range(0..2) {
             0 => self.prog.store(mem_size).set_dst(dst).set_imm(imm).set_off(offset),
             1 => self.prog.store_x(mem_size).set_dst(dst).set_src(src).set_off(offset),
             _ => !unreachable!(),
@@ -153,7 +155,7 @@ impl EbpfGenerator<'_> {
         let imm: i32 = self.config_table.get_rand_imm();
         let offset: i16 = self.config_table.get_rand_offset();
 
-        let mem_size: MemSize = match rand::thread_rng().gen_range(0..4) {
+        let mem_size: MemSize = match self.config_table.rng.gen_range(0..4) {
             0 => MemSize::Byte,
             1 => MemSize::HalfWord,
             2 => MemSize::Word,
@@ -161,7 +163,7 @@ impl EbpfGenerator<'_> {
             _ => !unreachable!(),
         };
 
-        match rand::thread_rng().gen_range(0..4) {
+        match self.config_table.rng.gen_range(0..4) {
             0 => {
                 match mem_size {
                     MemSize::DoubleWord => {
@@ -185,7 +187,7 @@ impl EbpfGenerator<'_> {
         let imm: i32 = self.config_table.get_rand_imm();
         let offset: i16 = self.config_table.get_rand_offset();
 
-        let condition: Cond = match rand::thread_rng().gen_range(0..11) {
+        let condition: Cond = match self.config_table.rng.gen_range(0..11) {
             0  => Cond::BitAnd,
             1  => Cond::Equals,
             2  => Cond::Greater,
@@ -200,14 +202,14 @@ impl EbpfGenerator<'_> {
             _  => !unreachable!(),
         };
 
-        let source: Source = match rand::thread_rng().gen_range(0..2) {
+        let source: Source = match self.config_table.rng.gen_range(0..2) {
             0 => Source::Imm,
             1 => Source::Reg,
             _ => !unreachable!(),
         };
 
         // Weighted to match number of jump instructions
-        let instruction = match rand::thread_rng().gen_range(0..12) {
+        let instruction = match self.config_table.rng.gen_range(0..12) {
             0..1  => self.prog.jump_unconditional().set_dst(dst).set_src(src).set_imm(imm).set_off(offset),
             1..12 => self.prog.jump_conditional(condition, source).set_dst(dst),
             _     => !unreachable!(),
@@ -219,7 +221,7 @@ impl EbpfGenerator<'_> {
             _           => !unreachable!(),
         };
     }
-
+    
     pub fn init_map(&mut self) {
         // Prepare the stack for "map_lookup_elem"
         //self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
@@ -247,5 +249,4 @@ impl EbpfGenerator<'_> {
         self.prog.load_x(MemSize::DoubleWord).set_dst(2).set_src(0).set_off(8).push();
 
     }
-
 }
