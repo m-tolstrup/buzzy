@@ -5,7 +5,7 @@ use rbpf::insn_builder::{
 };
 
 pub struct ConfigTable {
-	rng: ThreadRng,
+	pub rng: ThreadRng,
 	seed: u32,
 	
 	pub instr_count: u32,
