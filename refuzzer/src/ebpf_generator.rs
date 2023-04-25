@@ -57,9 +57,11 @@ impl EbpfGenerator<'_> {
 
         // Always initialize zero - lets more programs through the verifier
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
+
+        let mut instr_gen_count: u32 = self.config_table.instr_count;
         
         loop {
-            if self.config_table.instr_count == 0 {
+            if instr_gen_count == 0 {
                 break;
             }
 
@@ -72,7 +74,7 @@ impl EbpfGenerator<'_> {
                 _      => !unreachable!(),
             }
 
-            self.config_table.instr_count -= 1;
+            instr_gen_count -= 1;
         }
     }
 
@@ -215,5 +217,4 @@ impl EbpfGenerator<'_> {
             _           => !unreachable!(),
         };
     }
-
 }
