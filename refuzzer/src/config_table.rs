@@ -33,7 +33,7 @@ impl ConfigTable {
 			select_numeric_edge_cases: true,
 			// select_edge_cases: _random_choices & (1 << 0) != 0,
 
-			// Select completly random registers
+			// Select completely random registers
 			// When false, only register 0 to 5 is selected
 			select_random_registers: false,
 			// select_random_registers: _random_choices & (2 << 0) != 0,
