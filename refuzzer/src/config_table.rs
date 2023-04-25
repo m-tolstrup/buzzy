@@ -18,7 +18,7 @@ pub struct ConfigTable {
 }
 
 impl ConfigTable {
-	pub fn new(_seed: u32, _random_choices: u8) -> ConfigTable {
+	pub fn new(_seed: u32) -> ConfigTable {
 		ConfigTable {
 			rng: rand::thread_rng(),
 			// ***** VARIABLES FOR RANDOM CHOICES BASED ON SEED ***** //
