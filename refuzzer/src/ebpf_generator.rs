@@ -59,7 +59,7 @@ impl EbpfGenerator<'_> {
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
         
         loop {
-            if self.config_table.random_instr_count == 0 {
+            if self.config_table.instr_count == 0 {
                 break;
             }
 
@@ -72,7 +72,7 @@ impl EbpfGenerator<'_> {
                 _      => !unreachable!(),
             }
 
-            self.config_table.random_instr_count -= 1;
+            self.config_table.instr_count -= 1;
         }
     }
 
