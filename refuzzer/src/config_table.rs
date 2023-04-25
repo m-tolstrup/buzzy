@@ -5,10 +5,12 @@ use rbpf::insn_builder::{
 };
 
 pub struct ConfigTable {
+	rng: ThreadRng,
 	seed: u32,
 	
 	pub instr_count: u32,
-	select_edge_cases: bool,
+	select_numeric_edge_cases: bool,
+	select_random_registers: bool,
 	stored_registers: Vec<u8>,
 	loaded_registers: Vec<u8>,
 	stack_pointer_position: u16,
@@ -18,21 +20,35 @@ pub struct ConfigTable {
 impl ConfigTable {
 	pub fn new(_seed: u32, _random_choices: u8) -> ConfigTable {
 		ConfigTable {
-			// ***** VARIABLES MANUALLY SET FOR EXPERIMENTS - AFFECTING RANDOM CHOICES, ETC ***** //
-			select_edge_cases: true, // select edge case values
-			// select_edge_cases: _random_choices & (1 << 0) != 0,
-
-			// ***** VARIABLES FOR RANDOM CHOICES ***** //
+			rng: rand::thread_rng(),
+			// ***** VARIABLES FOR RANDOM CHOICES BASED ON SEED ***** //
 			seed: _seed,
 			// Max instruction size is 512, i.e. 9 bits
 			// Change here if you want more or fewer instructions
 			instr_count: _seed & 0b111111111,
 
+			// ***** VARIABLES MANUALLY SET FOR EXPERIMENTS - AFFECTING RANDOM CHOICES, ETC ***** //
+
+			// Select edge case values
+			select_numeric_edge_cases: true,
+			// select_edge_cases: _random_choices & (1 << 0) != 0,
+
+			// Select completly random registers
+			// When false, only register 0 to 5 is selected
+			select_random_registers: false,
+			// select_random_registers: _random_choices & (2 << 0) != 0,
+
 			// ***** VARIABLES TO TRACK PROGRAM ***** //
-			stored_registers: Vec::new(), // registers where a store has been performed, but no following load
-			loaded_registers: Vec::new(), // registers where a load has been performed, but no following store
-			stack_total_size_used: 0, // how many bytes have been pushed to the stack (popped are subtracted)
-			stack_pointer_position: 0, // stack position indicated in bytes
+
+			// Registers where a store has been performed, but no following load
+			stored_registers: Vec::new(),
+			// Registers where a load has been performed, but no following store
+			loaded_registers: Vec::new(),
+ 			// How many bytes have been pushed to the stack (popped are subtracted)
+			// Used to give a rough idea of stack use - not intended to be accurate
+			stack_total_size_used: 0,
+			// Stack pointer position indicated in bytes
+			stack_pointer_position: 0,
 		}
 	}
 
@@ -40,11 +56,15 @@ impl ConfigTable {
 		// If something has been stored from the register, it is probably a good dst for a new value
 		let reg: u8;
 		if self.stored_registers.is_empty() {
-			reg = rand::thread_rng().gen_range(0..6);
+			if self.select_random_registers {
+				reg = self.rng.gen_range(0..11);
+			} else {
+				reg = self.rng.gen_range(0..6);
+			}
 		} else {
 			reg = match self.stored_registers.pop() {
 				Some(num) => num,
-				None => rand::thread_rng().gen_range(0..6),
+				None => self.rng.gen_range(0..6),
 			};
 		}
 		reg
@@ -54,11 +74,15 @@ impl ConfigTable {
 		// If something has been loaded into a register, it is probably a good src
 		let reg: u8;
 		if self.loaded_registers.is_empty() {
-			reg = rand::thread_rng().gen_range(0..6);
+			if self.select_random_registers {
+				reg = self.rng.gen_range(0..11);
+			} else {
+				reg = self.rng.gen_range(0..6);
+			}
 		} else {
 			reg = match self.loaded_registers.pop() {
 				Some(num) => num,
-				None => rand::thread_rng().gen_range(0..6),
+				None => self.rng.gen_range(0..6),
 			};
 		}
 		reg
@@ -78,26 +102,26 @@ impl ConfigTable {
 		}
 	}
 
-	pub fn get_rand_imm(&self) -> i32 {
+	pub fn get_rand_imm(&mut self) -> i32 {
 		// Return a random immediate
 		let imm: i32;
-		if self.select_edge_cases {
-			imm = match rand::thread_rng().gen_range(0..2) {
-				0 => 0,
+		if self.select_numeric_edge_cases {
+			imm = match self.rng.gen_range(0..2) {
+				0 => 0, // TODO something inbetween the to? A branch generating a random number?
 				1 => 2147483647,
 				_ => unreachable!()
 			};
 		} else {
-			imm = rand::thread_rng().gen_range(0..2147483647);
+			imm = self.rng.gen_range(0..2147483647);
 		}
 		imm
 	}
 	
-	pub fn get_rand_offset(&self) -> i16 {
+	pub fn get_rand_offset(&mut self) -> i16 {
 		// Return a random offset
 		let offset: i16;
-		if self.select_edge_cases {
-			offset = match rand::thread_rng().gen_range(0..6) {
+		if self.select_numeric_edge_cases {
+			offset = match self.rng.gen_range(0..6) {
 				0 => 0,
 				1 => 1, // Byte
 				2 => 2, // Half Word
@@ -107,7 +131,7 @@ impl ConfigTable {
 				_ => unreachable!()
 			};
 		} else {
-			offset = rand::thread_rng().gen_range(0..32767);
+			offset = self.rng.gen_range(0..32767);
 		}
 		offset
 	}
@@ -139,8 +163,12 @@ impl ConfigTable {
 			MemSize::DoubleWord => 8,
 		};
 
-		// TODO maybe a check?
-		self.stack_total_size_used += bytes;
+		// Keep the stored memory at a maximum of 512
+		if self.stack_total_size_used + bytes > 512 {
+			self.stack_total_size_used = 512;
+		} else {
+			self.stack_total_size_used += bytes;
+		}	
 	}
 
 	pub fn pop_value_from_stack(&mut self, mem_size: MemSize) {
@@ -151,7 +179,6 @@ impl ConfigTable {
 			MemSize::DoubleWord => 8,
 		};
 
-		// TODO maybe a check?
 		self.stack_total_size_used -= bytes;
 	}
 }
