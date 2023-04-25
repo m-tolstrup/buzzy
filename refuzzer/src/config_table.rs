@@ -107,7 +107,7 @@ impl ConfigTable {
 		let imm: i32;
 		if self.select_numeric_edge_cases {
 			imm = match self.rng.gen_range(0..2) {
-				0 => 0, // TODO something inbetween the to? A branch generating a random number?
+				0 => 0, // TODO something inbetween the two? A branch generating a random number?
 				1 => 2147483647,
 				_ => unreachable!()
 			};
