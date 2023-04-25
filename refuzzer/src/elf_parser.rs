@@ -40,7 +40,7 @@ impl ElfParser {
     pub fn parse_prog(self) -> anyhow::Result<()> {
 
         // Create file we want verify with "./check" from PREVAIL
-        let name = "../obj-files/data.o";
+        let name = "obj-files/data.o";
         let file = File::create(Path::new(name))?;
 
         // Set target

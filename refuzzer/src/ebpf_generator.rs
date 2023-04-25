@@ -17,7 +17,7 @@ use rbpf::insn_builder::{
 use crate::config_table::ConfigTable;
 
 pub struct EbpfGenerator<'a> {
-    prog: BpfCode,
+    pub prog: BpfCode,
     config_table: ConfigTable,
     strategy: &'a str,
 }
@@ -31,7 +31,7 @@ impl EbpfGenerator<'_> {
         }
     }
 
-    pub fn generate_program(&mut self) -> BpfCode{
+    pub fn generate_program(&mut self) {
 
         match self.strategy {
             "InitZero" => {
@@ -51,8 +51,6 @@ impl EbpfGenerator<'_> {
 
         // Always push exit instruction
         self.prog.exit().push();
-
-        self.prog.clone()
     }
 
     fn init_zero(&mut self) {
@@ -74,7 +72,7 @@ impl EbpfGenerator<'_> {
                 0..13  => self.select_random_alu_instr(),
                 13..15 => self.select_random_store_instr(),
                 15..19 => self.select_random_load_instr(),
-                19..20 => self.select_random_jump_instr(),
+                19..20 => self.select_random_jump_instr(), // TODO weight jump based on number of different jump conditions?
                 _      => !unreachable!(),
             }
 
@@ -163,16 +161,21 @@ impl EbpfGenerator<'_> {
             _ => !unreachable!(),
         };
 
-        // TODO maybe delete abs and ind? Kernel docs says they are legacy
-        let instruction = match rand::thread_rng().gen_range(0..4) {
-            0 => self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset),
-            1 => self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset),
-            2 => self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset),
-            3 => self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset),
-            _ => !unreachable!(),
+        match rand::thread_rng().gen_range(0..4) {
+            0 => {
+                match mem_size {
+                    MemSize::DoubleWord => {
+                        self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();
+                        self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();
+                    },
+                    _ => {self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();}
+                };
+            },
+            1 => {self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
+            2 => {self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
+            3 => {self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
+            _ => {!unreachable!();},
         };
-
-        instruction.push();
     }
 
     pub fn select_random_jump_instr(&mut self) {

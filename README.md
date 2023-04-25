@@ -27,6 +27,7 @@ The PREVAIL and uBPF submodules have some required dependencies.
   - `git clone --recurse-submodules https://github.com/m-tolstrup/ubpf-fuzz/`
   - `git submodule update --remote rbpf`
   - `git submodule update --remote refuzzer/faerie`
+  - `git submodule update --remote ubpf`
 - Build the [PREVAIL verifier](https://github.com/vbpf/ebpf-verifier) submodule
   - `cmake -B build -DCMAKE_BUILD_TYPE=Release`
   - `cmake --build build`
@@ -38,3 +39,9 @@ The PREVAIL and uBPF submodules have some required dependencies.
 - Run the ubpf-fuzz user-space eBPF fuzzing harness 
   - `cd refuzzer`
   - `cargo +nightly fuzz run test/random`
+
+## Trophies
+ubpf-fuzz has found the following bugs:
+
+- [Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/microsoft/ebpf-for-windows/issues/2362)
+

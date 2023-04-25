@@ -1,7 +1,7 @@
 [submodule "ubpf"]
 	path = ubpf
-	url = https://github.com/iovisor/ubpf
-	ignore = dirty
+	url = https://github.com/tobashi/ubpf
+	branch = main
 [submodule "ebpf-verifier"]
 	path = ebpf-verifier
 	url = https://github.com/vbpf/ebpf-verifier
