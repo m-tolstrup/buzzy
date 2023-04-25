@@ -9,8 +9,10 @@ pub struct ConfigTable {
 	
 	pub instr_count: u32,
 	select_edge_cases: bool,
+	stored_registers: Vec<u8>,
+	loaded_registers: Vec<u8>,
 	stack_pointer_position: u16,
-	stack_total_size_used: u16,
+	stack_total_size_used: u16,	
 }
 
 impl ConfigTable {
@@ -27,21 +29,53 @@ impl ConfigTable {
 			instr_count: _seed & 0b111111111,
 
 			// ***** VARIABLES TO TRACK PROGRAM ***** //
+			stored_registers: Vec::new(), // registers where a store has been performed, but no following load
+			loaded_registers: Vec::new(), // registers where a load has been performed, but no following store
 			stack_total_size_used: 0, // how many bytes have been pushed to the stack (popped are subtracted)
 			stack_pointer_position: 0, // stack position indicated in bytes
 		}
 	}
 
-	pub fn get_rand_dst_reg(self) -> u8 {
-		// TODO should not be completly random? Context matters
-		let reg: u8 = rand::thread_rng().gen_range(0..6);
+	pub fn get_rand_dst_reg(&mut self) -> u8 {
+		// If something has been stored from the register, it is probably a good dst for a new value
+		let reg: u8;
+		if self.stored_registers.is_empty() {
+			reg = rand::thread_rng().gen_range(0..6);
+		} else {
+			reg = match self.stored_registers.pop() {
+				Some(num) => num,
+				None => rand::thread_rng().gen_range(0..6),
+			};
+		}
 		reg
 	}
 
-	pub fn get_rand_src_reg(self) -> u8 {
-		// TODO should not be completly random? Context matters
-		let reg: u8 = rand::thread_rng().gen_range(0..6);
+	pub fn get_rand_src_reg(&mut self) -> u8 {
+		// If something has been loaded into a register, it is probably a good src
+		let reg: u8;
+		if self.loaded_registers.is_empty() {
+			reg = rand::thread_rng().gen_range(0..6);
+		} else {
+			reg = match self.loaded_registers.pop() {
+				Some(num) => num,
+				None => rand::thread_rng().gen_range(0..6),
+			};
+		}
 		reg
+	}
+
+	pub fn store_from_register(&mut self, register: u8) {
+		// Store if a registers contents have been pushed to the stack
+		if !self.stored_registers.contains(&register) {
+			self.stored_registers.push(register);
+		}
+	}
+
+	pub fn load_from_register(&mut self, register: u8) {
+		// Store if a register has been used to store value popped from stack
+		if !self.loaded_registers.contains(&register) {
+			self.loaded_registers.push(register);
+		}
 	}
 
 	pub fn get_rand_imm(self) -> i32 {
