@@ -12,6 +12,7 @@ pub struct SymbolTable {
 	pub instr_count: u32,
 	select_numeric_edge_cases: bool,
 	select_random_registers: bool,
+	initialized_registers: Vec<u8>,
 	stored_registers: Vec<u8>,
 	loaded_registers: Vec<u8>,
 	stack_pointer_position: u16,
@@ -24,9 +25,10 @@ impl SymbolTable {
 			rng: rand::thread_rng(),
 			// ***** VARIABLES FOR RANDOM CHOICES BASED ON SEED ***** //
 			seed: _seed,
-			// Max instruction size is 512, i.e. 9 bits
-			// Change here if you want more or fewer instructions
-			instr_count: _seed & 0b111111111,
+
+			// How many instructions to generate
+			// Currently set at the start of generate_program function
+			instr_count: 512,
 
 			// ***** VARIABLES MANUALLY SET FOR EXPERIMENTS - AFFECTING RANDOM CHOICES, ETC ***** //
 
@@ -41,6 +43,8 @@ impl SymbolTable {
 
 			// ***** VARIABLES TO TRACK PROGRAM ***** //
 
+			// Initialized registers
+			initialized_registers: Vec::new(),
 			// Registers where a store has been performed, but no following load
 			stored_registers: Vec::new(),
 			// Registers where a load has been performed, but no following store
@@ -110,9 +114,10 @@ impl SymbolTable {
 		// Return a random immediate
 		let imm: i32;
 		if self.select_numeric_edge_cases {
-			imm = match self.rng.gen_range(0..2) {
-				0 => 0, // TODO something inbetween the two? A branch generating a random number?
-				1 => 2147483647,
+			imm = match self.rng.gen_range(0..3) {
+				0 => 0,
+				1 => self.rng.gen_range(0..2147483647),
+				2 => 2147483647,
 				_ => unreachable!()
 			};
 		} else {
@@ -125,13 +130,12 @@ impl SymbolTable {
 		// Return a random offset
 		let offset: i16;
 		if self.select_numeric_edge_cases {
-			offset = match self.rng.gen_range(0..6) {
+			offset = match self.rng.gen_range(0..5) {
 				0 => 0,
 				1 => 1, // Byte
 				2 => 2, // Half Word
 				3 => 4, // Word
 				4 => 8,	// Double Word
-				5 => 32767,
 				_ => unreachable!()
 			};
 		} else {
@@ -184,5 +188,11 @@ impl SymbolTable {
 		};
 
 		self.stack_total_size_used -= bytes;
+	}
+
+	pub fn initialize_register(&mut self, register: u8) {
+		if !self.initialized_registers.contains(&register) {
+			self.initialized_registers.push(register);
+		}
 	}
 }

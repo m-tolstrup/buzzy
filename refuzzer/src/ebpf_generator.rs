@@ -33,6 +33,9 @@ impl EbpfGenerator<'_> {
 
     pub fn generate_program(&mut self) {
 
+        // We (almost) always init zero and push exit, so two are subtracted from the range here
+        self.symbol_table.instr_count = self.symbol_table.rng.gen_range(0..511);
+
         match self.strategy {
             "InitZero" => {
                 self.init_zero();
@@ -43,6 +46,9 @@ impl EbpfGenerator<'_> {
             "MapHeader" => {
                 self.init_zero();
                 self.init_map();
+            },
+            "RandomStackSequences" => {
+                self.random_sequences();
             },
             _ => {
                 //Nothing
@@ -77,6 +83,26 @@ impl EbpfGenerator<'_> {
                 19..20 => self.select_random_jump_instr(), // TODO weight jump based on number of different jump conditions?
                 _      => !unreachable!(),
             }
+
+            instr_gen_count -= 1;
+        }
+    }
+
+    pub fn random_sequences(&mut self) {
+        let mut instr_gen_count: u32 = self.symbol_table.instr_count;
+        loop {
+            if instr_gen_count == 0 {
+                break;
+            }
+
+            let generated_count = match self.symbol_table.rng.gen_range(0..5) {
+                0 => self.sequence_mov_imm_to_reg(),
+                1 => self.sequence_pop_from_stack(),
+                2 => self.sequence_push_to_stack(),
+                3 => self.add_stack_pointer(),
+                4 => self.sub_stack_pointer(),
+                _ => !unreachable!(),
+            };
 
             instr_gen_count -= 1;
         }
@@ -220,6 +246,74 @@ impl EbpfGenerator<'_> {
             Source::Reg => instruction.set_src(src).set_off(offset).push(),
             _           => !unreachable!(),
         };
+    }
+
+    pub fn sequence_mov_imm_to_reg(&mut self) {
+        // Move an immediate value to a register
+        // Useful for initializing - also tracks initialized registers
+        let dst: u8 = self.symbol_table.get_rand_dst_reg();
+        let imm: i32 = self.symbol_table.get_rand_imm();
+
+        self.symbol_table.initialize_register(dst);
+
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(dst).set_imm(imm).push();
+    }
+
+    pub fn sequence_push_to_stack(&mut self) {
+        // Move the stack pointer and at store something
+        let stack_pointer: u8 = 10;
+        let src: u8 = self.symbol_table.get_rand_src_reg();
+        let offset: i16 = 0;
+
+        let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
+            0 => MemSize::Byte,
+            1 => MemSize::HalfWord,
+            2 => MemSize::Word,
+            3 => MemSize::DoubleWord,
+            _ => !unreachable!(),
+        };
+
+        let move_stack_offset: i32 = match mem_size {
+            MemSize::Byte       => 1,
+            MemSize::HalfWord   => 2,
+            MemSize::Word       => 4,
+            MemSize::DoubleWord => 8,
+        };
+
+        // TODO multiple store_x after a large add to stack pointer
+
+        self.prog.add(Source::Imm, Arch::X64).set_dst(stack_pointer).set_imm(move_stack_offset).push();
+        self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset).push();
+
+        self.symbol_table.push_value_to_stack(mem_size);
+    }
+
+    pub fn sequence_pop_from_stack(&mut self) {
+        let stack_pointer: u8 = 10;
+        let dst: u8 = self.symbol_table.get_rand_dst_reg();
+        let offset: i16 = 0;
+
+        let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
+            0 => MemSize::Byte,
+            1 => MemSize::HalfWord,
+            2 => MemSize::Word,
+            3 => MemSize::DoubleWord,
+            _ => !unreachable!(),
+        };
+
+        let move_stack_offset: i32 = match mem_size {
+            MemSize::Byte       => 1,
+            MemSize::HalfWord   => 2,
+            MemSize::Word       => 4,
+            MemSize::DoubleWord => 8,
+        };
+
+        // TODO multiple load_x then a large sub from stack pointer
+
+        self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset).push();
+        self.prog.sub(Source::Imm, Arch::X64).set_dst(stack_pointer).set_imm(move_stack_offset).push();
+
+        self.symbol_table.pop_value_from_stack(mem_size);
     }
     
     pub fn init_map(&mut self) {
