@@ -163,19 +163,19 @@ impl EbpfGenerator<'_> {
             _ => !unreachable!(),
         };
 
-        match self.config_table.rng.gen_range(0..4) {
+        match self.config_table.rng.gen_range(0..2) {
             0 => {
                 match mem_size {
                     MemSize::DoubleWord => {
                         self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();
                         self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();
                     },
-                    _ => {self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();}
+                    _ => { } // Only allowed for double word so do nothing
                 };
             },
-            1 => {self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
-            2 => {self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
-            3 => {self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
+            1 => {self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
+            // 2 => {self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset).push();}, // LEGACY
+            // 3 => {self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset).push();}, // LEGACY
             _ => {!unreachable!();},
         };
     }
@@ -210,7 +210,7 @@ impl EbpfGenerator<'_> {
 
         // Weighted to match number of jump instructions
         let instruction = match self.config_table.rng.gen_range(0..12) {
-            0..1  => self.prog.jump_unconditional().set_dst(dst).set_src(src).set_imm(imm).set_off(offset),
+            0..1  => self.prog.jump_unconditional().set_dst(dst),
             1..12 => self.prog.jump_conditional(condition, source).set_dst(dst),
             _     => !unreachable!(),
         };
