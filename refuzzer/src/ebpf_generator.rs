@@ -14,11 +14,11 @@ use rbpf::insn_builder::{
     MemSize,
 };
 
-use crate::config_table::ConfigTable;
+use crate::symbol_table::SymbolTable;
 
 pub struct EbpfGenerator<'a> {
     pub prog: BpfCode,
-    config_table: ConfigTable,
+    config_table: SymbolTable,
     strategy: &'a str,
 }
 
@@ -26,7 +26,7 @@ impl EbpfGenerator<'_> {
     pub fn new(_seed: u32, _strategy: &str) -> EbpfGenerator {
         EbpfGenerator { 
             prog: BpfCode::new(),
-            config_table: ConfigTable::new(_seed),
+            config_table: SymbolTable::new(_seed),
             strategy: _strategy,
         }
     }
