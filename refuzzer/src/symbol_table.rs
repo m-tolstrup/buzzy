@@ -4,7 +4,8 @@ use rbpf::insn_builder::{
     MemSize,
 };
 
-pub struct ConfigTable {
+
+pub struct SymbolTable {
 	pub rng: ThreadRng,
 	seed: u32,
 	
@@ -17,9 +18,9 @@ pub struct ConfigTable {
 	stack_total_size_used: u16,	
 }
 
-impl ConfigTable {
-	pub fn new(_seed: u32) -> ConfigTable {
-		ConfigTable {
+impl SymbolTable {
+	pub fn new(_seed: u32) -> SymbolTable {
+		SymbolTable {
 			rng: rand::thread_rng(),
 			// ***** VARIABLES FOR RANDOM CHOICES BASED ON SEED ***** //
 			seed: _seed,
@@ -51,6 +52,9 @@ impl ConfigTable {
 			stack_pointer_position: 0,
 		}
 	}
+
+	// ***** Symbol table functions are purposefully not 100% accurate ***** //
+	// ***** The reason being that the fuzzer should generate some strange programs that are not too correct ***** //
 
 	pub fn get_rand_dst_reg(&mut self) -> u8 {
 		// If something has been stored from the register, it is probably a good dst for a new value
