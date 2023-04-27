@@ -170,12 +170,12 @@ impl EbpfGenerator<'_> {
                         self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();
                         self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();
                     },
-                    _ => { // Only allowed for double word so do nothing }
+                    _ => { } // Only allowed for double word so do nothing
                 };
             },
             1 => {self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
-            // 1 => {self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset).push();}, // LEGACY
-            // 2 => {self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset).push();}, // LEGACY
+            // 2 => {self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset).push();}, // LEGACY
+            // 3 => {self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset).push();}, // LEGACY
             _ => {!unreachable!();},
         };
     }
