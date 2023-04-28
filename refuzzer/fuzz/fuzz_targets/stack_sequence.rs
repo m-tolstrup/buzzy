@@ -43,7 +43,7 @@ fuzz_target!(|data: FuzzSeedData| {
 
     // Backtrace environment variable for debugging.
     // env::set_var("RUST_BACKTRACE", "1");
-/* 
+
     // Verify the eBPF program with PREVAIL
     let verify_output = Command::new("../ebpf-verifier/check")
                  .args(&["obj-files/data.o"])
@@ -88,5 +88,5 @@ fuzz_target!(|data: FuzzSeedData| {
                 }
             };
         }
-    } */
+    }
 });
