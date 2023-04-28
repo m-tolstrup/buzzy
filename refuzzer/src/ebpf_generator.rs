@@ -34,7 +34,8 @@ impl EbpfGenerator<'_> {
     pub fn generate_program(&mut self) {
 
         // We (almost) always init zero and push exit, so two are subtracted from the range here
-        self.symbol_table.instr_count = self.symbol_table.rng.gen_range(0..511);
+        let instr_count = self.symbol_table.rng.gen_range(0..511);
+        self.symbol_table.set_instr_count(instr_count);
 
         match self.strategy {
             "InitZero" => {
@@ -71,7 +72,7 @@ impl EbpfGenerator<'_> {
         // Always initialize zero - lets more programs through the verifier
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
 
-        let mut instr_gen_count: i32 = self.symbol_table.instr_count;
+        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
         
         loop {
             if instr_gen_count == 0 {
@@ -93,7 +94,7 @@ impl EbpfGenerator<'_> {
 
     fn random_stack_sequences(&mut self) {
         // This generation technique is pretty stack focused right now
-        let mut instr_gen_count: i32 = self.symbol_table.instr_count;
+        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
         loop {
             if instr_gen_count <= 0 {
                 break;
@@ -117,7 +118,7 @@ impl EbpfGenerator<'_> {
 
     fn expanded_random_stack_sequences(&mut self) {
         // This generation technique is pretty stack focused right now
-        let mut instr_gen_count: i32 = self.symbol_table.instr_count;
+        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
         loop {
             if instr_gen_count <= 0 {
                 break;
@@ -142,7 +143,7 @@ impl EbpfGenerator<'_> {
     }
 
     fn random_alu_wrapper(&mut self) -> i32{
-        let max_alu: i32 = self.symbol_table.max_alu;
+        let max_alu: i32 = self.symbol_table.get_max_alu_instr();
         let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+1);
         
         for _ in 1..instr_gen_count {
@@ -153,7 +154,7 @@ impl EbpfGenerator<'_> {
     }
 
     fn random_jump_wrapper(&mut self) -> i32{
-        let max_jump: i32 = self.symbol_table.max_jump;
+        let max_jump: i32 = self.symbol_table.get_max_jump_instr();
         let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_jump+1);
         
         for _ in 1..instr_gen_count {
@@ -319,8 +320,6 @@ impl EbpfGenerator<'_> {
     fn sequence_push_to_stack(&mut self) -> i32 {
         // Move the stack pointer and at store something
         let stack_pointer: u8 = 10;
-        let src: u8 = self.symbol_table.get_rand_src_reg();
-        let offset: i16 = 0;
 
         let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
             0 => MemSize::Byte,
@@ -337,21 +336,41 @@ impl EbpfGenerator<'_> {
             MemSize::DoubleWord => 8,
         };
 
-        // TODO multiple store_x after a large add to stack pointer
+        let initialized_register_count: usize = self.symbol_table.initialized_register_count();
 
-        let i: i32 = self.add_stack_pointer(move_stack_offset);
-        self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset).push();
+        if initialized_register_count == 0 {
+            // If zero registers has been initialized a instruction is generated anyways
+            // You could return here, if this is not desired - it is fuzzing, generate what you want
+            let src: u8 = self.symbol_table.get_rand_src_reg();
+            let offset: i16 = 0;
 
-        self.symbol_table.store_from_register(src);
-        self.symbol_table.push_value_to_stack(mem_size);
+            let add_instr_count: i32 = self.add_stack_pointer(move_stack_offset);
 
-        return 1 + i;
+            self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset).push();
+            self.symbol_table.store_from_register(src);
+            self.symbol_table.push_value_to_stack(mem_size);
+            
+            return 1 + add_instr_count;
+        } else {
+            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..initialized_register_count+1);
+    
+            let add_instr_count: i32 = self.add_stack_pointer(move_stack_offset * instr_gen_count as i32);
+
+            for i in 0..instr_gen_count {
+                let src: u8 = self.symbol_table.get_init_register(i);
+                let offset: i16 = i as i16 * move_stack_offset as i16;
+
+                self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset).push();
+                self.symbol_table.store_from_register(src);
+                self.symbol_table.push_value_to_stack(mem_size);
+            }
+
+            return instr_gen_count as i32 + add_instr_count;
+        }
     }
 
     fn sequence_pop_from_stack(&mut self) -> i32 {
         let stack_pointer: u8 = 10;
-        let dst: u8 = self.symbol_table.get_rand_dst_reg();
-        let offset: i16 = 0;
 
         let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
             0 => MemSize::Byte,
@@ -368,15 +387,37 @@ impl EbpfGenerator<'_> {
             MemSize::DoubleWord => 8,
         };
 
-        // TODO multiple load_x then a large sub from stack pointer
+        let initialized_register_count: usize = self.symbol_table.initialized_register_count();
 
-        self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset).push();
-        let i: i32 = self.sub_stack_pointer(move_stack_offset);
+        if initialized_register_count == 0 {
+            // If zero registers has been initialized a instruction is generated anyways
+            // You could return here, if this is not desired - it is fuzzing, generate what you want
+            let dst: u8 = self.symbol_table.get_rand_dst_reg();
+            let offset: i16 = 0;
 
-        self.symbol_table.load_to_register(dst);
-        self.symbol_table.pop_value_from_stack(mem_size);
+            let sub_instr_count: i32 = self.sub_stack_pointer(move_stack_offset);
 
-        return 1 + i;
+            self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset).push();
+            self.symbol_table.load_to_register(dst);
+            self.symbol_table.pop_value_from_stack(mem_size);
+            
+            return 1 + sub_instr_count;
+        } else {
+            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..initialized_register_count+1);
+    
+            let sub_instr_count: i32 = self.sub_stack_pointer(move_stack_offset * instr_gen_count as i32);
+
+            for i in 0..instr_gen_count {
+                let dst: u8 = self.symbol_table.get_init_register(i);
+                let offset: i16 = i as i16 * move_stack_offset as i16;
+
+                self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset).push();
+                self.symbol_table.load_to_register(dst);
+                self.symbol_table.pop_value_from_stack(mem_size);
+            }
+
+            return instr_gen_count as i32 + sub_instr_count;
+        }
     }
 
     fn add_stack_pointer(&mut self, move_stack_offset: i32) -> i32 {

@@ -9,9 +9,9 @@ pub struct SymbolTable {
 	pub rng: ThreadRng,
 	seed: u32,
 	
-	pub instr_count: i32,
-	pub max_alu: i32,
-	pub max_jump: i32,
+	instr_count: i32,
+	max_alu: i32,
+	max_jump: i32,
 	select_numeric_edge_cases: bool,
 	select_random_registers: bool,
 	initialized_registers: Vec<u8>,
@@ -62,6 +62,22 @@ impl SymbolTable {
 		}
 	}
 
+	pub fn get_instr_count(&mut self) -> i32 {
+		self.instr_count
+	}
+
+	pub fn set_instr_count(&mut self, i:i32) {
+		self.instr_count = i
+	}
+
+	pub fn get_max_alu_instr(&mut self) -> i32 {
+		self.max_alu
+	}
+
+	pub fn get_max_jump_instr(&mut self) -> i32 {
+		self.max_jump
+	}
+
 	// ***** Symbol table functions are purposefully not 100% accurate ***** //
 	// ***** The reason being that the fuzzer should generate some strange programs that are not too correct ***** //
 
@@ -99,6 +115,23 @@ impl SymbolTable {
 			};
 		}
 		reg
+	}
+
+	pub fn get_init_register(&mut self, index: usize) -> u8 {
+		let reg: u8 = self.initialized_registers[index];
+		reg
+	}
+
+	pub fn initialize_register(&mut self, register: u8) {
+		// Keep track of initialized registers
+		if !self.initialized_registers.contains(&register) {
+			self.initialized_registers.push(register);
+		}
+	}
+
+	pub fn initialized_register_count(&mut self) -> usize {
+		let i: usize = self.initialized_registers.len();
+		i
 	}
 
 	pub fn store_from_register(&mut self, register: u8) {
@@ -236,12 +269,5 @@ impl SymbolTable {
 		};
 
 		self.stack_total_size_used -= bytes;
-	}
-
-	pub fn initialize_register(&mut self, register: u8) {
-		// Keep track of initialized registers
-		if !self.initialized_registers.contains(&register) {
-			self.initialized_registers.push(register);
-		}
 	}
 }
