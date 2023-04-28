@@ -52,10 +52,6 @@ impl EbpfGenerator<'_> {
                 self.init_zero();
                 self.random_stack_sequences();
             },
-            "ExpandedRandomStackSequences" => {
-                self.init_zero();
-                self.expanded_random_stack_sequences();
-            },
             _ => {
                 //Nothing
             }
@@ -102,41 +98,12 @@ impl EbpfGenerator<'_> {
                 break;
             }
 
-            let add_value: i32 = self.symbol_table.get_random_stack_add_value();
-            let sub_value: i32 = self.symbol_table.get_random_stack_sub_value();
-
             let generated_count: i32 = match self.symbol_table.rng.gen_range(0..5) {
                 0 => self.sequence_mov_imm_to_reg(),
                 1 => self.sequence_pop_from_stack(),
                 2 => self.sequence_push_to_stack(),
-                3 => self.add_stack_pointer(add_value),
-                4 => self.sub_stack_pointer(sub_value),
-                _ => unreachable!(),
-            };
-
-            instr_gen_count -= generated_count;
-        }
-    }
-
-    fn expanded_random_stack_sequences(&mut self) {
-        // This generation technique is pretty stack focused right now
-        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
-        loop {
-            if instr_gen_count <= 0 {
-                break;
-            }
-
-            let add_value: i32 = self.symbol_table.get_random_stack_add_value();
-            let sub_value: i32 = self.symbol_table.get_random_stack_sub_value();
-
-            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..6) {
-                0 => self.sequence_mov_imm_to_reg(),
-                1 => self.sequence_pop_from_stack(),
-                2 => self.sequence_push_to_stack(),
-                3 => self.add_stack_pointer(add_value),
-                4 => self.sub_stack_pointer(sub_value),
-                5 => self.random_alu_wrapper(),
-                6 => self.random_jump_wrapper(),
+                3 => self.random_alu_wrapper(),
+                4 => self.random_jump_wrapper(),
                 _ => unreachable!(),
             };
 
@@ -346,17 +313,13 @@ impl EbpfGenerator<'_> {
             let src: u8 = self.symbol_table.get_rand_src_reg();
             let offset: i16 = 0;
 
-            let add_instr_count: i32 = self.add_stack_pointer(move_stack_offset);
-
             self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset).push();
             self.symbol_table.store_from_register(src);
             self.symbol_table.push_value_to_stack(mem_size);
             
-            return 1 + add_instr_count;
+            return 1;
         } else {
             let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..initialized_register_count+1);
-    
-            let add_instr_count: i32 = self.add_stack_pointer(move_stack_offset * instr_gen_count as i32);
 
             for i in 0..instr_gen_count {
                 let src: u8 = self.symbol_table.get_init_register(i);
@@ -367,7 +330,7 @@ impl EbpfGenerator<'_> {
                 self.symbol_table.push_value_to_stack(mem_size);
             }
 
-            return instr_gen_count as i32 + add_instr_count;
+            return instr_gen_count as i32;
         }
     }
 
@@ -397,17 +360,13 @@ impl EbpfGenerator<'_> {
             let dst: u8 = self.symbol_table.get_rand_dst_reg();
             let offset: i16 = 0;
 
-            let sub_instr_count: i32 = self.sub_stack_pointer(move_stack_offset);
-
             self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset).push();
             self.symbol_table.load_to_register(dst);
             self.symbol_table.pop_value_from_stack(mem_size);
             
-            return 1 + sub_instr_count;
+            return 1;
         } else {
             let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..initialized_register_count+1);
-    
-            let sub_instr_count: i32 = self.sub_stack_pointer(move_stack_offset * instr_gen_count as i32);
 
             for i in 0..instr_gen_count {
                 let dst: u8 = self.symbol_table.get_init_register(i);
@@ -418,20 +377,8 @@ impl EbpfGenerator<'_> {
                 self.symbol_table.pop_value_from_stack(mem_size);
             }
 
-            return instr_gen_count as i32 + sub_instr_count;
+            return instr_gen_count as i32;
         }
-    }
-
-    fn add_stack_pointer(&mut self, move_stack_offset: i32) -> i32 {
-        self.symbol_table.add_stack_pointer(move_stack_offset);
-        self.prog.add(Source::Imm, Arch::X64).set_dst(10).set_imm(move_stack_offset).push();
-        return 1;
-    }
-
-    fn sub_stack_pointer(&mut self, move_stack_offset: i32) -> i32 {
-        self.symbol_table.sub_stack_pointer(move_stack_offset);
-        self.prog.sub(Source::Imm, Arch::X64).set_dst(10).set_imm(move_stack_offset).push();
-        return 1;
     }
     
     fn init_map(&mut self) {
