@@ -23,7 +23,7 @@ struct FuzzSeedData {
 
 fuzz_target!(|data: FuzzSeedData| {
     // Generate a program - fuzzed structure provides randomness
-    let strategy = "RandomStackSequences";
+    let strategy = "ExpandedRandomStackSequences";
     let mut generator = EbpfGenerator::new(data.seed, strategy);
     generator.generate_program();
     let generated_program = generator.prog;
@@ -43,7 +43,7 @@ fuzz_target!(|data: FuzzSeedData| {
 
     // Backtrace environment variable for debugging.
     // env::set_var("RUST_BACKTRACE", "1");
-
+/* 
     // Verify the eBPF program with PREVAIL
     let verify_output = Command::new("../ebpf-verifier/check")
                  .args(&["obj-files/data.o"])
@@ -88,5 +88,5 @@ fuzz_target!(|data: FuzzSeedData| {
                 }
             };
         }
-    }
+    } */
 });

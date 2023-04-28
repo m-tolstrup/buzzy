@@ -10,6 +10,8 @@ pub struct SymbolTable {
 	seed: u32,
 	
 	pub instr_count: i32,
+	pub max_alu: i32,
+	pub max_jump: i32,
 	select_numeric_edge_cases: bool,
 	select_random_registers: bool,
 	initialized_registers: Vec<u8>,
@@ -31,6 +33,10 @@ impl SymbolTable {
 
 			// ***** VARIABLES MANUALLY SET FOR EXPERIMENTS - AFFECTING RANDOM CHOICES, ETC ***** //
 
+			// Maximum number of ALU instructions in a row for sequences
+			max_alu: 5,
+			// Maximum number of JUMP instructions in a row for sequences
+			max_jump: 1,
 			// Select edge case values
 			select_numeric_edge_cases: true,
 			// select_edge_cases: _random_choices & (1 << 0) != 0,
