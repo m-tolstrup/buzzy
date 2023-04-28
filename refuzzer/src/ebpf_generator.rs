@@ -49,9 +49,11 @@ impl EbpfGenerator<'_> {
                 self.init_map();
             },
             "RandomStackSequences" => {
+                self.init_zero();
                 self.random_stack_sequences();
             },
             "ExpandedRandomStackSequences" => {
+                self.init_zero();
                 self.expanded_random_stack_sequences();
             },
             _ => {

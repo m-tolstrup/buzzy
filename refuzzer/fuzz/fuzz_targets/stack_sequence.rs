@@ -51,9 +51,22 @@ fuzz_target!(|data: FuzzSeedData| {
                  .expect("failed to execute process");
 
     let str_v_output = String::from_utf8(verify_output.stdout).unwrap();
-    
+
     // PREVAIL outputs 0 for invalid, and 1 for valid eBPF programs
     if str_v_output.starts_with("1") {
+        println!("SUCCESS");
+        let now = Utc::now().timestamp_millis().to_string();
+        let file_name = "inspect/data".to_owned() + &now + ".o";
+        let _file = File::create(file_name.clone());
+
+        let _file_write_result = match fs::copy("obj-files/data.o", file_name) {
+            Ok(_) => {
+                // Do nothing
+            },
+            Err(_) => {
+                return;
+            }
+        };
         // Execute the eBPF program with uBPF (-j flag for JIT compile)
         let execute_output = Command::new("../ubpf/vm/test")
                  .args(&["obj-files/data.o"])
