@@ -96,8 +96,8 @@ impl EbpfGenerator<'_> {
                 break;
             }
 
-            let add_value = self.symbol_table.get_random_stack_add_value();
-            let sub_value = self.symbol_table.get_random_stack_sub_value();
+            let add_value: i32 = self.symbol_table.get_random_stack_add_value();
+            let sub_value: i32 = self.symbol_table.get_random_stack_sub_value();
 
             let generated_count: i32 = match self.symbol_table.rng.gen_range(0..5) {
                 0 => self.sequence_mov_imm_to_reg(),
@@ -291,6 +291,7 @@ impl EbpfGenerator<'_> {
         let i: i32 = self.add_stack_pointer(move_stack_offset);
         self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset).push();
 
+        self.symbol_table.store_from_register(src);
         self.symbol_table.push_value_to_stack(mem_size);
 
         return 1 + i;
@@ -321,6 +322,7 @@ impl EbpfGenerator<'_> {
         self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset).push();
         let i: i32 = self.sub_stack_pointer(move_stack_offset);
 
+        self.symbol_table.load_to_register(dst);
         self.symbol_table.pop_value_from_stack(mem_size);
 
         return 1 + i;

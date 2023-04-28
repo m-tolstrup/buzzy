@@ -102,7 +102,7 @@ impl SymbolTable {
 		}
 	}
 
-	pub fn load_from_register(&mut self, register: u8) {
+	pub fn load_to_register(&mut self, register: u8) {
 		// Store if a register has been used to store value popped from stack
 		if !self.loaded_registers.contains(&register) {
 			self.loaded_registers.push(register);
@@ -204,6 +204,7 @@ impl SymbolTable {
 	}
 
 	pub fn push_value_to_stack(&mut self, mem_size: MemSize) {
+		// Track how many bytes are stored on the stack
 		let bytes: i32 = match mem_size {
 			MemSize::Byte 	    => 1,
 			MemSize::HalfWord   => 2,
@@ -220,6 +221,7 @@ impl SymbolTable {
 	}
 
 	pub fn pop_value_from_stack(&mut self, mem_size: MemSize) {
+		// Track how many bytes are stored on the stack
 		let bytes: i32 = match mem_size {
 			MemSize::Byte 	    => 1,
 			MemSize::HalfWord   => 2,
@@ -231,6 +233,7 @@ impl SymbolTable {
 	}
 
 	pub fn initialize_register(&mut self, register: u8) {
+		// Keep track of initialized registers
 		if !self.initialized_registers.contains(&register) {
 			self.initialized_registers.push(register);
 		}
