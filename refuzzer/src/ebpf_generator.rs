@@ -81,7 +81,7 @@ impl EbpfGenerator<'_> {
                 13..15 => self.select_random_store_instr(),
                 15..19 => self.select_random_load_instr(),
                 19..20 => self.select_random_jump_instr(), // TODO weight jump based on number of different jump conditions?
-                _      => !unreachable!(),
+                _      => unreachable!(),
             }
 
             instr_gen_count -= 1;
@@ -105,7 +105,7 @@ impl EbpfGenerator<'_> {
                 2 => self.sequence_push_to_stack(),
                 3 => self.add_stack_pointer(add_value),
                 4 => self.sub_stack_pointer(sub_value),
-                _ => !unreachable!(),
+                _ => unreachable!(),
             };
 
             instr_gen_count -= generated_count;
@@ -122,7 +122,7 @@ impl EbpfGenerator<'_> {
         let source: Source = match self.symbol_table.rng.gen_range(0..2) {
             0 => Source::Imm,
             1 => Source::Reg,
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         // Choose a random (ALU) instruction and set the destination register
@@ -141,14 +141,14 @@ impl EbpfGenerator<'_> {
             10 => self.prog.signed_right_shift(source, Arch::X64).set_dst(dst),
             11 => self.prog.mov(source, Arch::X64).set_dst(dst),
             12 => self.prog.negate(Arch::X64).set_dst(dst),
-            _  => !unreachable!(),
+            _  => unreachable!(),
         };
 
         // Then, depending on the source type, set the value of the source and push it
         match source {
             Source::Imm => instruction.set_imm(imm).push(),
             Source::Reg => instruction.set_src(src).push(),
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
     }
 
@@ -165,13 +165,13 @@ impl EbpfGenerator<'_> {
             1 => MemSize::HalfWord,
             2 => MemSize::Word,
             3 => MemSize::DoubleWord,
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         let instruction = match self.symbol_table.rng.gen_range(0..2) {
             0 => self.prog.store(mem_size).set_dst(dst).set_imm(imm).set_off(offset),
             1 => self.prog.store_x(mem_size).set_dst(dst).set_src(src).set_off(offset),
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         instruction.push();
@@ -190,7 +190,7 @@ impl EbpfGenerator<'_> {
             1 => MemSize::HalfWord,
             2 => MemSize::Word,
             3 => MemSize::DoubleWord,
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         match self.symbol_table.rng.gen_range(0..2) {
@@ -206,7 +206,7 @@ impl EbpfGenerator<'_> {
             1 => {self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
             // 2 => {self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset).push();}, // LEGACY
             // 3 => {self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset).push();}, // LEGACY
-            _ => {!unreachable!();},
+            _ => {unreachable!();},
         };
     }
 
@@ -229,26 +229,26 @@ impl EbpfGenerator<'_> {
             8  => Cond::LowerEqualsSigned,
             9  => Cond::LowerSigned,
             10 => Cond::NotEquals,
-            _  => !unreachable!(),
+            _  => unreachable!(),
         };
 
         let source: Source = match self.symbol_table.rng.gen_range(0..2) {
             0 => Source::Imm,
             1 => Source::Reg,
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         // Weighted to match number of jump instructions
         let instruction = match self.symbol_table.rng.gen_range(0..12) {
             0..1  => self.prog.jump_unconditional().set_dst(dst),
             1..12 => self.prog.jump_conditional(condition, source).set_dst(dst),
-            _     => !unreachable!(),
+            _     => unreachable!(),
         };
 
         match source {
             Source::Imm => instruction.set_imm(imm).set_off(offset).push(),
             Source::Reg => instruction.set_src(src).set_off(offset).push(),
-            _           => !unreachable!(),
+            _           => unreachable!(),
         };
     }
 
@@ -276,7 +276,7 @@ impl EbpfGenerator<'_> {
             1 => MemSize::HalfWord,
             2 => MemSize::Word,
             3 => MemSize::DoubleWord,
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         let move_stack_offset: i32 = match mem_size {
@@ -307,7 +307,7 @@ impl EbpfGenerator<'_> {
             1 => MemSize::HalfWord,
             2 => MemSize::Word,
             3 => MemSize::DoubleWord,
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         let move_stack_offset: i32 = match mem_size {
