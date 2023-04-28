@@ -12,6 +12,7 @@ pub struct SymbolTable {
 	pub instr_count: u32,
 	select_numeric_edge_cases: bool,
 	select_random_registers: bool,
+	initialized_registers: Vec<u8>,
 	stored_registers: Vec<u8>,
 	loaded_registers: Vec<u8>,
 	stack_pointer_position: u16,
@@ -41,6 +42,8 @@ impl SymbolTable {
 
 			// ***** VARIABLES TO TRACK PROGRAM ***** //
 
+			// Initialized registers
+			initialized_registers: Vec::new(),
 			// Registers where a store has been performed, but no following load
 			stored_registers: Vec::new(),
 			// Registers where a load has been performed, but no following store
@@ -184,5 +187,11 @@ impl SymbolTable {
 		};
 
 		self.stack_total_size_used -= bytes;
+	}
+
+	pub fn initialize_register(&mut self, register: u8) {
+		if !self.initialized_registers.contains(&register) {
+			self.initialized_registers.push(register);
+		}
 	}
 }
