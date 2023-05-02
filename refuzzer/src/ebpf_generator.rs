@@ -153,6 +153,7 @@ impl EbpfGenerator<'_> {
         // "src" is most likely to be stackpointer (R10) in this context?
         let src: u8 = self.symbol_table.get_rand_src_reg();
         let imm: i32 = self.symbol_table.get_rand_imm();
+        let imm_dw: i32 = self.symbol_table.get_rand_imm();
         let offset: i16 = self.symbol_table.get_rand_offset();
 
         let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
@@ -167,8 +168,10 @@ impl EbpfGenerator<'_> {
             0 => {
                 match mem_size {
                     MemSize::DoubleWord => {
+                        // 128 bit instruction
                         self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();
-                        self.prog.load(mem_size).set_dst(dst).set_imm(imm).set_off(offset).push();
+                        // This might be a hack, but load word is illegal, but generates a zeroed instruction
+                        self.prog.load(MemSize::Word).set_imm(imm_dw).push();
                     },
                     _ => { } // Only allowed for double word so do nothing
                 };
