@@ -9,13 +9,16 @@ pub struct SymbolTable {
 	pub rng: ThreadRng,
 	seed: u32,
 	
-	pub instr_count: u32,
+	instr_count: i32,
+	max_alu: i32,
+	max_jump: i32,
 	select_numeric_edge_cases: bool,
 	select_random_registers: bool,
+	initialized_registers: Vec<u8>,
 	stored_registers: Vec<u8>,
 	loaded_registers: Vec<u8>,
-	stack_pointer_position: u16,
-	stack_total_size_used: u16,	
+	stack_pointer_position: i32,
+	stack_total_size_used: i32,	
 }
 
 impl SymbolTable {
@@ -26,10 +29,14 @@ impl SymbolTable {
 			seed: _seed,
 			// Max instruction size is 512, i.e. 9 bits
 			// Change here if you want more or fewer instructions
-			instr_count: _seed & 0b111111111,
+			instr_count: 0,
 
 			// ***** VARIABLES MANUALLY SET FOR EXPERIMENTS - AFFECTING RANDOM CHOICES, ETC ***** //
 
+			// Maximum number of ALU instructions in a row for sequences
+			max_alu: 5,
+			// Maximum number of JUMP instructions in a row for sequences
+			max_jump: 1,
 			// Select edge case values
 			select_numeric_edge_cases: true,
 			// select_edge_cases: _random_choices & (1 << 0) != 0,
@@ -41,6 +48,8 @@ impl SymbolTable {
 
 			// ***** VARIABLES TO TRACK PROGRAM ***** //
 
+			// Initialized registers
+			initialized_registers: Vec::new(),
 			// Registers where a store has been performed, but no following load
 			stored_registers: Vec::new(),
 			// Registers where a load has been performed, but no following store
@@ -51,6 +60,22 @@ impl SymbolTable {
 			// Stack pointer position indicated in bytes
 			stack_pointer_position: 0,
 		}
+	}
+
+	pub fn get_instr_count(&mut self) -> i32 {
+		self.instr_count
+	}
+
+	pub fn set_instr_count(&mut self, i:i32) {
+		self.instr_count = i
+	}
+
+	pub fn get_max_alu_instr(&mut self) -> i32 {
+		self.max_alu
+	}
+
+	pub fn get_max_jump_instr(&mut self) -> i32 {
+		self.max_jump
 	}
 
 	// ***** Symbol table functions are purposefully not 100% accurate ***** //
@@ -92,6 +117,23 @@ impl SymbolTable {
 		reg
 	}
 
+	pub fn get_init_register(&mut self, index: usize) -> u8 {
+		let reg: u8 = self.initialized_registers[index];
+		reg
+	}
+
+	pub fn initialize_register(&mut self, register: u8) {
+		// Keep track of initialized registers
+		if !self.initialized_registers.contains(&register) {
+			self.initialized_registers.push(register);
+		}
+	}
+
+	pub fn initialized_register_count(&mut self) -> usize {
+		let i: usize = self.initialized_registers.len();
+		i
+	}
+
 	pub fn store_from_register(&mut self, register: u8) {
 		// Store if a registers contents have been pushed to the stack
 		if !self.stored_registers.contains(&register) {
@@ -99,7 +141,7 @@ impl SymbolTable {
 		}
 	}
 
-	pub fn load_from_register(&mut self, register: u8) {
+	pub fn load_to_register(&mut self, register: u8) {
 		// Store if a register has been used to store value popped from stack
 		if !self.loaded_registers.contains(&register) {
 			self.loaded_registers.push(register);
@@ -110,9 +152,11 @@ impl SymbolTable {
 		// Return a random immediate
 		let imm: i32;
 		if self.select_numeric_edge_cases {
-			imm = match self.rng.gen_range(0..2) {
-				0 => 0, // TODO something inbetween the two? A branch generating a random number?
-				1 => 2147483647,
+			imm = match self.rng.gen_range(0..4) {
+				0 => 0,
+				1 => 1,
+				2 => self.rng.gen_range(2..2147483647),
+				3 => 2147483647,
 				_ => unreachable!()
 			};
 		} else {
@@ -140,27 +184,67 @@ impl SymbolTable {
 		offset
 	}
 
-	pub fn stack_to_top(&self) -> u16 {
+	pub fn stack_to_top(&self) -> i32 {
 		// Return number of bytes needed to set stack pointer at the top of the stack
 		512 - self.stack_pointer_position
 	}
 
-	pub fn stack_to_bottom(&self) -> u16 {
+	pub fn stack_to_bottom(&self) -> i32 {
 		// Return number of bytes needed to set stack pointer at the bottom of the stack
 		self.stack_pointer_position
 	}
 
-	pub fn move_stack_pointer(&mut self, number: u16) {
-		// Check if the stack pointer can be moved the chosen number of bytes - then move it
-		if number > 0 && self.stack_pointer_position + number <= 512 {
-				self.stack_pointer_position += number;
+	pub fn get_random_stack_add_value(&mut self) -> i32 {
+		let value: i32;
+		if self.select_numeric_edge_cases {
+			value = match self.rng.gen_range(0..5) {
+				0 => 1,
+				1 => 2,
+				2 => 4,
+				3 => 8,
+				4 => self.stack_to_top(),
+				_ => unreachable!()
+			};
 		} else {
-			self.stack_pointer_position -= number;
+			value = self.rng.gen_range(1..self.stack_to_top()+1)
+		}
+		value
+	}
+
+	pub fn get_random_stack_sub_value(&mut self) -> i32 {
+		let value: i32;
+		if self.select_numeric_edge_cases {
+			value = match self.rng.gen_range(0..5) {
+				0 => 1,
+				1 => 2,
+				2 => 4,
+				3 => 8,
+				4 => self.stack_to_bottom(),
+				_ => unreachable!(),
+			};
+		} else {
+			value = self.rng.gen_range(1..self.stack_to_bottom()+1)
+		}
+		value
+	}
+
+	pub fn add_stack_pointer(&mut self, number: i32) {
+		// Keep track of stack pointer position
+		if self.stack_pointer_position + number <= 512 {
+				self.stack_pointer_position += number;
+		}
+	}
+
+	pub fn sub_stack_pointer(&mut self, number: i32) {
+		// Keep track of stack pointer position
+		if self.stack_pointer_position - number >= 0 {
+				self.stack_pointer_position -= number;
 		}
 	}
 
 	pub fn push_value_to_stack(&mut self, mem_size: MemSize) {
-		let bytes: u16 = match mem_size {
+		// Track how many bytes are stored on the stack
+		let bytes: i32 = match mem_size {
 			MemSize::Byte 	    => 1,
 			MemSize::HalfWord   => 2,
 			MemSize::Word       => 4,
@@ -176,7 +260,8 @@ impl SymbolTable {
 	}
 
 	pub fn pop_value_from_stack(&mut self, mem_size: MemSize) {
-		let bytes: u16 = match mem_size {
+		// Track how many bytes are stored on the stack
+		let bytes: i32 = match mem_size {
 			MemSize::Byte 	    => 1,
 			MemSize::HalfWord   => 2,
 			MemSize::Word       => 4,

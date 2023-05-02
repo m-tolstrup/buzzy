@@ -40,3 +40,9 @@ name = "map_header"
 path = "fuzz_targets/map_header.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "stack_sequence"
+path = "fuzz_targets/stack_sequence.rs"
+test = false
+doc = false

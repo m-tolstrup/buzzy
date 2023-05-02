@@ -33,6 +33,10 @@ impl EbpfGenerator<'_> {
 
     pub fn generate_program(&mut self) {
 
+        // We (almost) always init zero and push exit, so two are subtracted from the range here
+        let instr_count = self.symbol_table.rng.gen_range(0..511);
+        self.symbol_table.set_instr_count(instr_count);
+
         match self.strategy {
             "InitZero" => {
                 self.init_zero();
@@ -43,6 +47,10 @@ impl EbpfGenerator<'_> {
             "MapHeader" => {
                 self.init_zero();
                 self.init_map();
+            },
+            "RandomStackSequences" => {
+                self.init_zero();
+                self.random_stack_sequences();
             },
             _ => {
                 //Nothing
@@ -62,7 +70,7 @@ impl EbpfGenerator<'_> {
         // Always initialize zero - lets more programs through the verifier
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
 
-        let mut instr_gen_count: u32 = self.symbol_table.instr_count;
+        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
         
         loop {
             if instr_gen_count == 0 {
@@ -75,11 +83,54 @@ impl EbpfGenerator<'_> {
                 13..15 => self.select_random_store_instr(),
                 15..19 => self.select_random_load_instr(),
                 19..20 => self.select_random_jump_instr(), // TODO weight jump based on number of different jump conditions?
-                _      => !unreachable!(),
+                _      => unreachable!(),
             }
 
             instr_gen_count -= 1;
         }
+    }
+
+    fn random_stack_sequences(&mut self) {
+        // This generation technique is pretty stack focused right now
+        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
+        loop {
+            if instr_gen_count <= 0 {
+                break;
+            }
+
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..5) {
+                0 => self.sequence_mov_imm_to_reg(),
+                1 => self.sequence_pop_from_stack(),
+                2 => self.sequence_push_to_stack(),
+                3 => self.random_alu_wrapper(),
+                4 => self.random_jump_wrapper(),
+                _ => unreachable!(),
+            };
+
+            instr_gen_count -= generated_count;
+        }
+    }
+
+    fn random_alu_wrapper(&mut self) -> i32{
+        let max_alu: i32 = self.symbol_table.get_max_alu_instr();
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+1);
+        
+        for _ in 1..instr_gen_count {
+            self.select_random_alu_instr();
+        }
+
+        return instr_gen_count;
+    }
+
+    fn random_jump_wrapper(&mut self) -> i32{
+        let max_jump: i32 = self.symbol_table.get_max_jump_instr();
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_jump+1);
+        
+        for _ in 1..instr_gen_count {
+            self.select_random_jump_instr();
+        }
+
+        return instr_gen_count;
     }
 
     fn select_random_alu_instr(&mut self) {
@@ -92,7 +143,7 @@ impl EbpfGenerator<'_> {
         let source: Source = match self.symbol_table.rng.gen_range(0..2) {
             0 => Source::Imm,
             1 => Source::Reg,
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         // Choose a random (ALU) instruction and set the destination register
@@ -111,18 +162,18 @@ impl EbpfGenerator<'_> {
             10 => self.prog.signed_right_shift(source, Arch::X64).set_dst(dst),
             11 => self.prog.mov(source, Arch::X64).set_dst(dst),
             12 => self.prog.negate(Arch::X64).set_dst(dst),
-            _  => !unreachable!(),
+            _  => unreachable!(),
         };
 
         // Then, depending on the source type, set the value of the source and push it
         match source {
             Source::Imm => instruction.set_imm(imm).push(),
             Source::Reg => instruction.set_src(src).push(),
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
     }
 
-    pub fn select_random_store_instr(&mut self) {
+    fn select_random_store_instr(&mut self) {
 
         // "dst" is most likely to be stackpointer (R10) in this context?
         let dst: u8 = self.symbol_table.get_rand_dst_reg();
@@ -135,19 +186,19 @@ impl EbpfGenerator<'_> {
             1 => MemSize::HalfWord,
             2 => MemSize::Word,
             3 => MemSize::DoubleWord,
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         let instruction = match self.symbol_table.rng.gen_range(0..2) {
             0 => self.prog.store(mem_size).set_dst(dst).set_imm(imm).set_off(offset),
             1 => self.prog.store_x(mem_size).set_dst(dst).set_src(src).set_off(offset),
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         instruction.push();
     }
 
-    pub fn select_random_load_instr(&mut self) {
+    fn select_random_load_instr(&mut self) {
         
         let dst: u8 = self.symbol_table.get_rand_dst_reg();
         // "src" is most likely to be stackpointer (R10) in this context?
@@ -160,7 +211,7 @@ impl EbpfGenerator<'_> {
             1 => MemSize::HalfWord,
             2 => MemSize::Word,
             3 => MemSize::DoubleWord,
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         match self.symbol_table.rng.gen_range(0..2) {
@@ -176,11 +227,11 @@ impl EbpfGenerator<'_> {
             1 => {self.prog.load_x(mem_size).set_dst(dst).set_src(src).set_off(offset).push();},
             // 2 => {self.prog.load_abs(mem_size).set_dst(dst).set_src(src).set_off(offset).push();}, // LEGACY
             // 3 => {self.prog.load_ind(mem_size).set_dst(dst).set_src(src).set_off(offset).push();}, // LEGACY
-            _ => {!unreachable!();},
+            _ => {unreachable!();},
         };
     }
 
-    pub fn select_random_jump_instr(&mut self) {
+    fn select_random_jump_instr(&mut self) {
 
         let dst: u8 = self.symbol_table.get_rand_dst_reg();
         let src: u8 = self.symbol_table.get_rand_src_reg();
@@ -199,30 +250,138 @@ impl EbpfGenerator<'_> {
             8  => Cond::LowerEqualsSigned,
             9  => Cond::LowerSigned,
             10 => Cond::NotEquals,
-            _  => !unreachable!(),
+            _  => unreachable!(),
         };
 
         let source: Source = match self.symbol_table.rng.gen_range(0..2) {
             0 => Source::Imm,
             1 => Source::Reg,
-            _ => !unreachable!(),
+            _ => unreachable!(),
         };
 
         // Weighted to match number of jump instructions
         let instruction = match self.symbol_table.rng.gen_range(0..12) {
             0..1  => self.prog.jump_unconditional().set_dst(dst),
             1..12 => self.prog.jump_conditional(condition, source).set_dst(dst),
-            _     => !unreachable!(),
+            _     => unreachable!(),
         };
 
         match source {
             Source::Imm => instruction.set_imm(imm).set_off(offset).push(),
             Source::Reg => instruction.set_src(src).set_off(offset).push(),
-            _           => !unreachable!(),
+            _           => unreachable!(),
         };
     }
+
+    fn sequence_mov_imm_to_reg(&mut self) -> i32 {
+        // Move an immediate value to a register
+        // Useful for initializing - also tracks initialized registers
+        let dst: u8 = self.symbol_table.get_rand_dst_reg();
+        let imm: i32 = self.symbol_table.get_rand_imm();
+
+        self.symbol_table.initialize_register(dst);
+
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(dst).set_imm(imm).push();
+
+        return 1;
+    }
+
+    fn sequence_push_to_stack(&mut self) -> i32 {
+        // Move the stack pointer and at store something
+        let stack_pointer: u8 = 10;
+
+        let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
+            0 => MemSize::Byte,
+            1 => MemSize::HalfWord,
+            2 => MemSize::Word,
+            3 => MemSize::DoubleWord,
+            _ => unreachable!(),
+        };
+
+        let move_stack_offset: i32 = match mem_size {
+            MemSize::Byte       => 1,
+            MemSize::HalfWord   => 2,
+            MemSize::Word       => 4,
+            MemSize::DoubleWord => 8,
+        };
+
+        let initialized_register_count: usize = self.symbol_table.initialized_register_count();
+
+        if initialized_register_count == 0 {
+            // If zero registers has been initialized a instruction is generated anyways
+            // You could return here, if this is not desired - it is fuzzing, generate what you want
+            let src: u8 = self.symbol_table.get_rand_src_reg();
+            let offset: i16 = 0;
+
+            self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset).push();
+            self.symbol_table.store_from_register(src);
+            self.symbol_table.push_value_to_stack(mem_size);
+            
+            return 1;
+        } else {
+            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..initialized_register_count+1);
+
+            for i in 0..instr_gen_count {
+                let src: u8 = self.symbol_table.get_init_register(i);
+                let offset: i16 = i as i16 * move_stack_offset as i16;
+
+                self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset).push();
+                self.symbol_table.store_from_register(src);
+                self.symbol_table.push_value_to_stack(mem_size);
+            }
+
+            return instr_gen_count as i32;
+        }
+    }
+
+    fn sequence_pop_from_stack(&mut self) -> i32 {
+        let stack_pointer: u8 = 10;
+
+        let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
+            0 => MemSize::Byte,
+            1 => MemSize::HalfWord,
+            2 => MemSize::Word,
+            3 => MemSize::DoubleWord,
+            _ => unreachable!(),
+        };
+
+        let move_stack_offset: i32 = match mem_size {
+            MemSize::Byte       => 1,
+            MemSize::HalfWord   => 2,
+            MemSize::Word       => 4,
+            MemSize::DoubleWord => 8,
+        };
+
+        let initialized_register_count: usize = self.symbol_table.initialized_register_count();
+
+        if initialized_register_count == 0 {
+            // If zero registers has been initialized a instruction is generated anyways
+            // You could return here, if this is not desired - it is fuzzing, generate what you want
+            let dst: u8 = self.symbol_table.get_rand_dst_reg();
+            let offset: i16 = 0;
+
+            self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset).push();
+            self.symbol_table.load_to_register(dst);
+            self.symbol_table.pop_value_from_stack(mem_size);
+            
+            return 1;
+        } else {
+            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..initialized_register_count+1);
+
+            for i in 0..instr_gen_count {
+                let dst: u8 = self.symbol_table.get_init_register(i);
+                let offset: i16 = i as i16 * move_stack_offset as i16;
+
+                self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset).push();
+                self.symbol_table.load_to_register(dst);
+                self.symbol_table.pop_value_from_stack(mem_size);
+            }
+
+            return instr_gen_count as i32;
+        }
+    }
     
-    pub fn init_map(&mut self) {
+    fn init_map(&mut self) {
         // Prepare the stack for "map_lookup_elem"
         //self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
 
