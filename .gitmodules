@@ -12,5 +12,5 @@
 	branch = master
 [submodule "buzzy/faerie"]
 	path = buzzy/faerie
-	url = https://github.com/tobashi/faerie
+	url = https://github.com/tobashi/faerie.git
 	branch = master
