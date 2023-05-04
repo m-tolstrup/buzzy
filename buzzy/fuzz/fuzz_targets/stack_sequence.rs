@@ -11,10 +11,10 @@ use chrono::{Utc, DateTime};
 use arbitrary;
 use libfuzzer_sys::fuzz_target;
 
-extern crate refuzzer;
+extern crate buzzy;
 
-use crate::refuzzer::ebpf_generator::EbpfGenerator;
-use crate::refuzzer::elf_parser::ElfParser;
+use crate::buzzy::ebpf_generator::EbpfGenerator;
+use crate::buzzy::elf_parser::ElfParser;
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct FuzzSeedData {

@@ -10,7 +10,7 @@
 	path = rbpf
 	url = https://github.com/m-tolstrup/rbpf
 	branch = master
-[submodule "refuzzer/faerie"]
-	path = refuzzer/faerie
+[submodule "buzzy/faerie"]
+	path = buzzy/faerie
 	url = https://github.com/tobashi/faerie
 	branch = master
