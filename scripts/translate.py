@@ -11,12 +11,12 @@ if sys.argv:
     instr_count = int(sys.argv[2])
 else:
     # Path is set here if it is not given through command line
-    o_path = os.path.join("..", "refuzzer", "logs", "error1681822839119.o")
+    o_path = os.path.join("..", "buzzy", "logs", "error1681822839119.o")
     # Set the number of instructions to read here
     instr_count = 4
 
-# The file is saved in the refuzzer cargo crate
-path = os.path.join("..", "refuzzer", "src", "bin", "translate.rs")
+# The file is saved in the buzzy cargo crate
+path = os.path.join("..", "buzzy", "src", "bin", "translate.rs")
 
 # Read bytes, but skip 64 header bytes
 try:
@@ -58,7 +58,7 @@ except:
 # Run command to run the translation
 try:
     cmd_str = "cargo +nightly run --bin translate"
-    path = os.path.join("..", "refuzzer")
+    path = os.path.join("..", "buzzy")
     os.chdir(path)
     subprocess.run(cmd_str, shell=True)
 except:

@@ -11,10 +11,10 @@ use chrono::{Utc, DateTime};
 use arbitrary;
 use libfuzzer_sys::fuzz_target;
 
-extern crate refuzzer;
+extern crate buzzy;
 
-use crate::refuzzer::ebpf_generator::EbpfGenerator;
-use crate::refuzzer::elf_parser::ElfParser;
+use crate::buzzy::ebpf_generator::EbpfGenerator;
+use crate::buzzy::elf_parser::ElfParser;
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct FuzzSeedData {
@@ -23,7 +23,7 @@ struct FuzzSeedData {
 
 fuzz_target!(|data: FuzzSeedData| {
     // Generate a program - fuzzed structure provides randomness
-    let strategy = "Random";
+    let strategy = "InitZero";
     let mut generator = EbpfGenerator::new(data.seed, strategy);
     generator.generate_program();
     let generated_program = generator.prog;
