@@ -24,7 +24,7 @@ All submodules were installed/compiled by following the README.md provided by th
 The PREVAIL and uBPF submodules have some required dependencies.
 
 - Pull code for the eBPF fuzzer and its submodules
-  - `git clone --recurse-submodules https://github.com/m-tolstrup/ubpf-fuzz/`
+  - `git clone --recurse-submodules https://github.com/m-tolstrup/buzzy/`
   - `git submodule update --remote rbpf`
   - `git submodule update --remote buzzy/faerie`
   - `git submodule update --remote ubpf`
@@ -43,5 +43,5 @@ The PREVAIL and uBPF submodules have some required dependencies.
 ## Trophies
 ubpf-fuzz has found the following bugs:
 
-- [Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/microsoft/ebpf-for-windows/issues/2362)
+- [Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/vbpf/ebpf-verifier/issues/484)
 
