@@ -26,7 +26,7 @@ The PREVAIL and uBPF submodules have some required dependencies.
 - Pull code for the eBPF fuzzer and its submodules
   - `git clone --recurse-submodules https://github.com/m-tolstrup/buzzy/`
   - `git submodule update --remote rbpf`
-  - `git submodule update --remote buzzy/faerie`
+  - `git submodule update --remote buzzer/faerie`
   - `git submodule update --remote ubpf`
 - Build the [PREVAIL verifier](https://github.com/vbpf/ebpf-verifier) submodule
   - `cmake -B build -DCMAKE_BUILD_TYPE=Release`
@@ -36,12 +36,12 @@ The PREVAIL and uBPF submodules have some required dependencies.
   - `cmake --build build --config Debug`
   - `make -C vm`
   - `sudo make -C vm install`
-- Run the ubpf-fuzz user-space eBPF fuzzing harness 
-  - `cd buzzy`
+- Run the buzzy user-space eBPF fuzzing harness 
+  - `cd buzzer`
   - `cargo +nightly fuzz run test/random`
 
 ## Trophies
-ubpf-fuzz has found the following bugs:
+buzzy has found the following bugs:
 
 - [Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/vbpf/ebpf-verifier/issues/484)
 
