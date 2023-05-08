@@ -65,38 +65,36 @@ impl ElfParser<'_> {
         ];
         if self.strategy == "MapHeader" {
             declarations.append(&mut vec![
-                ("maps", Decl::section(SectionKind::Data).with_writable(false).with_loaded(true).into()),
+                ("maps", Decl::data().writable().into()),
             ]);
-        }        
+        }
 
         obj.declarations(declarations.into_iter())?;
 
         // First parse generated eBPF into bytes
         let byte_code = &mut self.generated_prog.into_bytes();
+
         // Then define the eBPF program under ".text"
         obj.define(".text", byte_code.to_vec())?;
 
-        //let inst_cls_mask = 0x07;
-        //let inst_cls_ld = 0x00;
-        //let inst_opcode = 0x08;
-        //println!("inst_opcode & inst_cls_mask: {:?}", (inst_opcode & inst_cls_mask));
-        //obj.define("maps", b"".to_vec())?;
-        if self.strategy == "MapHeader" {
-            obj.define("maps", vec![0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])?;
+        if self.strategy == "MapHeader"{
+            //type = BPF_MAP_TYPE_ARRAY = 2
+            //key size   = 4 (8?)
+            //value size = size of map = 8192 (0x20, 0x00)
+            //max entry  = 1
+            //"map in map" = zeroed
+            obj.define("maps", vec![0x02, 0x00, 0x00, 0x00,
+                                    0x04, 0x00, 0x00, 0x00,
+                                    0x00, 0x20, 0x00, 0x00,
+                                    0x01, 0x00, 0x00, 0x00,
+                                    0x00, 0x00, 0x00, 0x00,
+                                    //0x00, 0x00, 0x00, 0x00,
+                                    //0x00, 0x00, 0x00, 0x00
+                                    ])?;
 
-            //TODO: set correct offset and addend?
-            //if (offset / sizeof(ebpf_inst) >= prog.prog.size())
-            //  throw "invalid relocation data"
-            //offset    = at = ? (load/lookup instruction = 0?)
-            //sizeof    = .text.len()
-            //prog.size = 1?
             obj.link_with(
-                Link { from: ".text", to: "maps", at: 0},
-                Reloc::Debug { size: 4, addend: 0},
+                Link { from: ".text", to: "maps", at: (4*8) },
+                Reloc::Debug { size: 8, addend: 0x00 },
             )?;
         }
 
