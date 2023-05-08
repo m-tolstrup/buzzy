@@ -34,7 +34,7 @@ impl EbpfGenerator<'_> {
     pub fn generate_program(&mut self) {
 
         // We (almost) always init zero and push exit, so two are subtracted from the range here
-        let instr_count = self.symbol_table.rng.gen_instr_count();
+        let instr_count = self.symbol_table.gen_instr_count();
         self.symbol_table.set_instr_count(instr_count);
 
         match self.strategy {

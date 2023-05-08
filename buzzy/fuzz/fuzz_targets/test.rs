@@ -2,9 +2,9 @@
 #![allow(unused_imports)]
 
 use std::fs;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::process::Command;
-use std::io::{self, Write};
+use std::io::{self, Write, prelude::*};
 
 use chrono::{Utc, DateTime};
 
@@ -51,6 +51,20 @@ fuzz_target!(|data: FuzzSeedData| {
                  .expect("failed to execute process");
 
     let str_v_output = String::from_utf8(verify_output.stdout).unwrap();
+
+    /***** COLLECT PREVAIL DATA FOR EXPERIMENTS *****/
+
+    let mut exp_file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .open("logs/exp-data.txt")
+        .unwrap();
+
+    if let Err(e) = writeln!(exp_file, "{}", str_v_output.clone()) {
+        eprintln!("Couldn't write to file: {}", e);
+    }
+
+    /************************************************/
     
     // PREVAIL outputs 0 for invalid, and 1 for valid eBPF programs
     if str_v_output.starts_with("1") {
@@ -61,19 +75,6 @@ fuzz_target!(|data: FuzzSeedData| {
                  .expect("failed to execute process");
 
         let str_e_output = String::from_utf8(execute_output.stdout).unwrap();
-
-        let exp_file_name = "obj-files/exp-data.txt";
-        let _exp_file = File::create(exp_file_name.clone());
-
-        let mut exp_file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open(exp_file_name.clone())
-            .unwrap();
-
-        if let Err(e) = writeln!(exp_file, str_e_output.clone()) {
-            eprintln!("Couldn't write to file: {}", e);
-        }
 
         // uBPF outputs PRIx64 string, encoding memory and memory length if the program was executed
         if str_e_output.starts_with("0x") {
