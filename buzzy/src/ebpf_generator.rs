@@ -34,7 +34,7 @@ impl EbpfGenerator<'_> {
     pub fn generate_program(&mut self) {
 
         // We (almost) always init zero and push exit, so two are subtracted from the range here
-        let instr_count = self.symbol_table.rng.gen_range(0..511);
+        let instr_count = self.symbol_table.rng.gen_instr_count();
         self.symbol_table.set_instr_count(instr_count);
 
         match self.strategy {
@@ -42,6 +42,7 @@ impl EbpfGenerator<'_> {
                 self.init_zero();
             },
             "Random" => {
+                self.init_zero();
                 self.random_instructions();
             },
             "MapHeader" => {
@@ -66,9 +67,6 @@ impl EbpfGenerator<'_> {
     }
 
     fn random_instructions(&mut self) {
-
-        // Always initialize zero - lets more programs through the verifier
-        self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
 
         let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
         

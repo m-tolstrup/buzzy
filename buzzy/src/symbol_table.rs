@@ -67,7 +67,17 @@ impl SymbolTable {
 	}
 
 	pub fn set_instr_count(&mut self, i:i32) {
-		self.instr_count = i
+		self.instr_count = i;
+	}
+
+	pub fn gen_instr_count(&mut self) -> i32 {
+		// One in ten programs are 32 instructions or less
+		let instr_count = match self.rng.gen_range(0..100) {
+			0..90   => self.rng.gen_range(1..33),
+			90..100 => self.rng.gen_range(33..511),
+			_       => unreachable!(),
+		};
+		instr_count
 	}
 
 	pub fn get_max_alu_instr(&mut self) -> i32 {
