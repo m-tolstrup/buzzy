@@ -62,6 +62,19 @@ fuzz_target!(|data: FuzzSeedData| {
 
         let str_e_output = String::from_utf8(execute_output.stdout).unwrap();
 
+        let exp_file_name = "obj-files/exp-data.txt";
+        let _exp_file = File::create(exp_file_name.clone());
+
+        let mut exp_file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open(exp_file_name.clone())
+            .unwrap();
+
+        if let Err(e) = writeln!(exp_file, str_e_output.clone()) {
+            eprintln!("Couldn't write to file: {}", e);
+        }
+
         // uBPF outputs PRIx64 string, encoding memory and memory length if the program was executed
         if str_e_output.starts_with("0x") {
             if verbose == true {
