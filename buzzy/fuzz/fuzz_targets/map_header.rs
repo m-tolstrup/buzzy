@@ -11,10 +11,10 @@ use chrono::{Utc, DateTime};
 use arbitrary;
 use libfuzzer_sys::fuzz_target;
 
-extern crate refuzzer;
+extern crate buzzy;
 
-use crate::refuzzer::ebpf_generator::EbpfGenerator;
-use crate::refuzzer::elf_parser::ElfParser;
+use crate::buzzy::ebpf_generator::EbpfGenerator;
+use crate::buzzy::elf_parser::ElfParser;
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct FuzzSeedData {
@@ -23,11 +23,11 @@ struct FuzzSeedData {
 
 fuzz_target!(|data: FuzzSeedData| {
     // Generate a program - fuzzed structure provides randomness
-    let strategy = "InitZero";
+    let strategy = "MapHeader";
     let mut generator = EbpfGenerator::new(data.seed, strategy);
     generator.generate_program();
     let generated_program = generator.prog;
-    let verbose = false;
+    let verbose = true;
 
     // Pass it to the parser and parse it
     let parser = ElfParser::new(generated_program, strategy);
@@ -69,8 +69,8 @@ fuzz_target!(|data: FuzzSeedData| {
             }
             // TODO: Check for memory bugs if PREVAIL="1" and uBPF="0x ..."
         }
-        else { // Hitting this branch should not happen, but we mean that PREVAIL or uBPF has a bug? (Inconsistent at least)
-            if verbose == true {
+        else {
+            if verbose == true{
                 let str_e_error = String::from_utf8(execute_output.stderr).unwrap();
                 println!("uBPF error: {}", str_e_error);
             }

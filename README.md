@@ -1,4 +1,4 @@
-# ubpf-fuzz
+# buzzy
 
 Master project at Aalborg University.
 
@@ -15,7 +15,7 @@ The project has the following structure:
   - Currently not used, but the intention is to use the user space JIT-compiler.
 - rbpf (Submodule) (Rust eBPF)
   - As our generator is written in Rust, we use the eBPF structures provided by this Rust eBPF crate.
-- refuzzer
+- buzzy
   - Our fuzzing harness utilizing a generator and rBPF assembler.
 
 All submodules were installed/compiled by following the README.md provided by the projects.
@@ -24,9 +24,9 @@ All submodules were installed/compiled by following the README.md provided by th
 The PREVAIL and uBPF submodules have some required dependencies.
 
 - Pull code for the eBPF fuzzer and its submodules
-  - `git clone --recurse-submodules https://github.com/m-tolstrup/ubpf-fuzz/`
+  - `git clone --recurse-submodules https://github.com/m-tolstrup/buzzy/`
   - `git submodule update --remote rbpf`
-  - `git submodule update --remote refuzzer/faerie`
+  - `git submodule update --remote buzzy/faerie`
   - `git submodule update --remote ubpf`
 - Build the [PREVAIL verifier](https://github.com/vbpf/ebpf-verifier) submodule
   - `cmake -B build -DCMAKE_BUILD_TYPE=Release`
@@ -36,12 +36,12 @@ The PREVAIL and uBPF submodules have some required dependencies.
   - `cmake --build build --config Debug`
   - `make -C vm`
   - `sudo make -C vm install`
-- Run the ubpf-fuzz user-space eBPF fuzzing harness 
-  - `cd refuzzer`
+- Run the buzzy user-space eBPF fuzzing harness 
+  - `cd buzzy`
   - `cargo +nightly fuzz run test/random`
 
 ## Trophies
-ubpf-fuzz has found the following bugs:
+buzzy has found the following bugs:
 
-- [Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/microsoft/ebpf-for-windows/issues/2362)
+- [Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/vbpf/ebpf-verifier/issues/484)
 

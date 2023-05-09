@@ -11,10 +11,10 @@ use chrono::{Utc, DateTime};
 use arbitrary;
 use libfuzzer_sys::fuzz_target;
 
-extern crate refuzzer;
+extern crate buzzy;
 
-use crate::refuzzer::ebpf_generator::EbpfGenerator;
-use crate::refuzzer::elf_parser::ElfParser;
+use crate::buzzy::ebpf_generator::EbpfGenerator;
+use crate::buzzy::elf_parser::ElfParser;
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct FuzzSeedData {
@@ -23,11 +23,11 @@ struct FuzzSeedData {
 
 fuzz_target!(|data: FuzzSeedData| {
     // Generate a program - fuzzed structure provides randomness
-    let strategy = "MapHeader";
+    let strategy = "RandomStackSequences";
     let mut generator = EbpfGenerator::new(data.seed, strategy);
     generator.generate_program();
     let generated_program = generator.prog;
-    let verbose = true;
+    let verbose = false;
 
     // Pass it to the parser and parse it
     let parser = ElfParser::new(generated_program, strategy);
@@ -56,7 +56,7 @@ fuzz_target!(|data: FuzzSeedData| {
     if str_v_output.starts_with("1") {
         // Execute the eBPF program with uBPF (-j flag for JIT compile)
         let execute_output = Command::new("../ubpf/vm/test")
-                 .args(&["-j", "obj-files/data.o"])
+                 .args(&["obj-files/data.o"])
                  .output()
                  .expect("failed to execute process");
 
@@ -69,8 +69,8 @@ fuzz_target!(|data: FuzzSeedData| {
             }
             // TODO: Check for memory bugs if PREVAIL="1" and uBPF="0x ..."
         }
-        else {
-            if verbose == true{
+        else { // Hitting this branch should not happen, but we mean that PREVAIL or uBPF has a bug? (Inconsistent at least)
+            if verbose == true {
                 let str_e_error = String::from_utf8(execute_output.stderr).unwrap();
                 println!("uBPF error: {}", str_e_error);
             }
