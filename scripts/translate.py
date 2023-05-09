@@ -62,4 +62,4 @@ try:
     os.chdir(path)
     subprocess.run(cmd_str, shell=True)
 except:
-    print("Failed to run 'cargo run --bin translate'")
+    print("Failed to run 'cargo +nightly run --bin translate'")
