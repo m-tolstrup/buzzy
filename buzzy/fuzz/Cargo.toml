@@ -36,6 +36,12 @@ test = false
 doc = false
 
 [[bin]]
+name = "random-bytes"
+path = "fuzz_targets/random_bytes.rs"
+test = false
+doc = false
+
+[[bin]]
 name = "map_header"
 path = "fuzz_targets/map_header.rs"
 test = false
