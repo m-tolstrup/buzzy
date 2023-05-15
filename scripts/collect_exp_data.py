@@ -68,9 +68,9 @@ def main():
         line = line.strip()
         if line == "":
             continue
-        elif line.endswith("lddw"):
+        elif "jump to middle of lddw" in line:
             results["lddw_err"] += 1
-        elif line.endswith("bounds"):
+        elif "jump out of bounds" in line:
             results["jump_err"] += 1
         elif line.startswith("0"):
             results["invalid"] += 1
