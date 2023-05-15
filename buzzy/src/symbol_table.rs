@@ -9,6 +9,7 @@ pub struct SymbolTable {
 	pub rng: ThreadRng,
 	seed: u32,
 	
+	pub const_instr_count: i32,
 	instr_count: i32,
 	max_alu: i32,
 	max_jump: i32,
@@ -27,9 +28,11 @@ impl SymbolTable {
 			rng: rand::thread_rng(),
 			// ***** VARIABLES FOR RANDOM CHOICES BASED ON SEED ***** //
 			seed: _seed,
-			// Max instruction size is 512, i.e. 9 bits
-			// Change here if you want more or fewer instructions
+
+			// Set when gen_instr_count is called
 			instr_count: 0,
+			const_instr_count: 0,
+
 
 			// ***** VARIABLES MANUALLY SET FOR EXPERIMENTS - AFFECTING RANDOM CHOICES, ETC ***** //
 
@@ -67,7 +70,18 @@ impl SymbolTable {
 	}
 
 	pub fn set_instr_count(&mut self, i:i32) {
-		self.instr_count = i
+		self.instr_count = i;
+	}
+
+	pub fn gen_instr_count(&mut self) -> i32 {
+		// One in ten programs are 32 instructions or less
+		let instr_count = match self.rng.gen_range(0..100) {
+			0..90   => self.rng.gen_range(1..33),
+			90..100 => self.rng.gen_range(33..511),
+			_       => unreachable!(),
+		};
+		self.const_instr_count = instr_count;
+		instr_count
 	}
 
 	pub fn get_max_alu_instr(&mut self) -> i32 {
