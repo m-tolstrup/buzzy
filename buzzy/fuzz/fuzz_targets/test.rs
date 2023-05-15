@@ -52,7 +52,16 @@ fuzz_target!(|data: FuzzSeedData| {
 
     let str_v_output = String::from_utf8(verify_output.stdout).unwrap();
 
-    /***** COLLECT PREVAIL DATA FOR EXPERIMENTS *****/
+    /***** COLLECT DATA FROM EXPERIMENTS *****/
+
+    // Remove '\n' for nice result format
+    let mut no_new_line = &str_v_output[0..str_v_output.len()-1];
+    if no_new_line.starts_with("unmarshaling error") {
+        no_new_line = &str_v_output[0..no_new_line.len()-1];
+    }
+
+    // Append number of instructions to the result of PREVAIL
+    let result = format!("{},{}", no_new_line, generator.symbol_table.const_instr_count);
 
     let mut exp_file = OpenOptions::new()
         .write(true)
@@ -60,9 +69,12 @@ fuzz_target!(|data: FuzzSeedData| {
         .open("logs/exp-data.txt")
         .unwrap();
 
-    if let Err(e) = writeln!(exp_file, "{}", str_v_output.clone()) {
+    if let Err(e) = writeln!(exp_file, "{}", result) {
         eprintln!("Couldn't write to file: {}", e);
     }
+
+    // Checking if PREVAIL result is untouched - it currently is :)
+    // println!("{}", str_v_output);
 
     /************************************************/
     
