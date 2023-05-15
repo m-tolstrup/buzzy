@@ -52,7 +52,7 @@ fuzz_target!(|data: FuzzSeedData| {
 
     let str_v_output = String::from_utf8(verify_output.stdout).unwrap();
 
-    /***** COLLECT PREVAIL DATA FOR EXPERIMENTS *****/
+    /***** COLLECT DATA FROM EXPERIMENTS *****/
 
     // Remove '\n' for nice result format
     let mut no_new_line = &str_v_output[0..str_v_output.len()-1];
