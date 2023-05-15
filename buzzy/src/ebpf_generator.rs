@@ -18,7 +18,7 @@ use crate::symbol_table::SymbolTable;
 
 pub struct EbpfGenerator<'a> {
     pub prog: BpfCode,
-    symbol_table: SymbolTable,
+    pub symbol_table: SymbolTable,
     strategy: &'a str,
 }
 
