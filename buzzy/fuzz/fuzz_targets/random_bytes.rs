@@ -23,6 +23,7 @@ struct FuzzData {
 
 fuzz_target!(|data: FuzzData| {
     let verbose = false;
+    let prog_length = data.prog.len();
 
     // Pass it to the parser and parse it
     let parser = RandomBytesParser::new(data.prog);
@@ -68,7 +69,7 @@ fuzz_target!(|data: FuzzData| {
         .open("logs/exp-data.txt")
         .unwrap();
 
-    if let Err(e) = writeln!(exp_file, "{}", result) {
+    if let Err(e) = writeln!(exp_file, "{},{}", result, prog_length) {
         eprintln!("Couldn't write to file: {}", e);
     }
 
