@@ -82,7 +82,7 @@ fuzz_target!(|data: FuzzSeedData| {
     if str_v_output.starts_with("1") {
         // Execute the eBPF program with uBPF (-j flag for JIT compile)
         let execute_output = Command::new("../ubpf/vm/test")
-                 .args(&["obj-files/data.o"])
+                 .args(&["-j", "obj-files/data.o"])
                  .output()
                  .expect("failed to execute process");
 
@@ -95,7 +95,7 @@ fuzz_target!(|data: FuzzSeedData| {
             }
             // TODO: Check for memory bugs if PREVAIL="1" and uBPF="0x ..."
         }
-        else { // Hitting this branch should not happen, but we mean that PREVAIL or uBPF has a bug? (Inconsistent at least)
+        else { // Hitting this branch should not happen; means that PREVAIL or uBPF has a bug/inconsistency
             if verbose == true {
                 let str_e_error = String::from_utf8(execute_output.stderr).unwrap();
                 println!("uBPF error: {}", str_e_error);

@@ -69,8 +69,8 @@ fuzz_target!(|data: FuzzSeedData| {
             }
             // TODO: Check for memory bugs if PREVAIL="1" and uBPF="0x ..."
         }
-        else {
-            if verbose == true{
+        else { // Hitting this branch should not happen; means that PREVAIL or uBPF has a bug/inconsistency
+            if verbose == true {
                 let str_e_error = String::from_utf8(execute_output.stderr).unwrap();
                 println!("uBPF error: {}", str_e_error);
             }
