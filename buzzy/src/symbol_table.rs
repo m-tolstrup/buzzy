@@ -168,11 +168,12 @@ impl SymbolTable {
 		// Return a random immediate
 		let imm: i32;
 		if self.select_numeric_edge_cases {
-			imm = match self.rng.gen_range(0..4) {
+			imm = match self.rng.gen_range(0..5) {
 				0 => 0,
 				1 => 1,
-				2 => self.rng.gen_range(2..2147483647),
-				3 => 2147483647,
+				2 => -1,
+				3 => self.rng.gen_range(2..2147483647),
+				4 => 2147483647,
 				_ => unreachable!()
 			};
 		} else {
@@ -185,13 +186,14 @@ impl SymbolTable {
 		// Return a random offset
 		let offset: i16;
 		if self.select_numeric_edge_cases {
-			offset = match self.rng.gen_range(0..6) {
+			offset = match self.rng.gen_range(0..7) {
 				0 => 0,
-				1 => 1, // Byte
-				2 => 2, // Half Word
-				3 => 4, // Word
-				4 => 8,	// Double Word
-				5 => 32767,
+				1 => -1,
+				2 => 1, // Byte
+				3 => 2, // Half Word
+				4 => 4, // Word
+				5 => 8,	// Double Word
+				6 => 32767,
 				_ => unreachable!()
 			};
 		} else {
@@ -261,12 +263,13 @@ impl SymbolTable {
 	pub fn get_random_stack_add_value(&mut self) -> i32 {
 		let value: i32;
 		if self.select_numeric_edge_cases {
-			value = match self.rng.gen_range(0..5) {
-				0 => 1,
-				1 => 2,
-				2 => 4,
-				3 => 8,
-				4 => self.stack_to_top(),
+			value = match self.rng.gen_range(0..6) {
+				0 => -1,
+				1 => 1,
+				2 => 2,
+				3 => 4,
+				4 => 8,
+				5 => self.stack_to_top(),
 				_ => unreachable!()
 			};
 		} else {
@@ -278,12 +281,13 @@ impl SymbolTable {
 	pub fn get_random_stack_sub_value(&mut self) -> i32 {
 		let value: i32;
 		if self.select_numeric_edge_cases {
-			value = match self.rng.gen_range(0..5) {
-				0 => 1,
-				1 => 2,
-				2 => 4,
-				3 => 8,
-				4 => self.stack_to_bottom(),
+			value = match self.rng.gen_range(0..6) {
+				0 => -1,
+				1 => 1,
+				2 => 2,
+				3 => 4,
+				4 => 8,
+				5 => self.stack_to_bottom(),
 				_ => unreachable!(),
 			};
 		} else {
@@ -308,12 +312,7 @@ impl SymbolTable {
 
 	pub fn push_value_to_stack(&mut self, mem_size: MemSize) {
 		// Track how many bytes are stored on the stack
-		let bytes: i32 = match mem_size {
-			MemSize::Byte 	    => 1,
-			MemSize::HalfWord   => 2,
-			MemSize::Word       => 4,
-			MemSize::DoubleWord => 8,
-		};
+		let bytes: i32 = self.get_mem_size_offset(mem_size);
 
 		// Keep the stored memory at a maximum of 512
 		if self.stack_total_size_used + bytes > 512 {
@@ -325,12 +324,7 @@ impl SymbolTable {
 
 	pub fn pop_value_from_stack(&mut self, mem_size: MemSize) {
 		// Track how many bytes are stored on the stack
-		let bytes: i32 = match mem_size {
-			MemSize::Byte 	    => 1,
-			MemSize::HalfWord   => 2,
-			MemSize::Word       => 4,
-			MemSize::DoubleWord => 8,
-		};
+		let bytes: i32 = self.get_mem_size_offset(mem_size);
 
 		self.stack_total_size_used -= bytes;
 	}
