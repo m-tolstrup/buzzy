@@ -137,13 +137,7 @@ impl EbpfGenerator<'_> {
         let dst: u8 = self.symbol_table.get_rand_dst_reg();
         let src: u8 = self.symbol_table.get_rand_src_reg();
         let imm: i32 = self.symbol_table.get_rand_imm();
-
-        // Select the source type
-        let source: Source = match self.symbol_table.rng.gen_range(0..2) {
-            0 => Source::Imm,
-            1 => Source::Reg,
-            _ => unreachable!(),
-        };
+        let source: Source = self.symbol_table.get_rand_source();
 
         // Choose a random (ALU) instruction and set the destination register
         // TODO swap bytes is missing
@@ -179,14 +173,7 @@ impl EbpfGenerator<'_> {
         let src: u8 = self.symbol_table.get_rand_src_reg();
         let imm: i32 = self.symbol_table.get_rand_imm();
         let offset: i16 = self.symbol_table.get_rand_offset();
-
-        let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
-            0 => MemSize::Byte,
-            1 => MemSize::HalfWord,
-            2 => MemSize::Word,
-            3 => MemSize::DoubleWord,
-            _ => unreachable!(),
-        };
+        let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
 
         let instruction = match self.symbol_table.rng.gen_range(0..2) {
             0 => self.prog.store(mem_size).set_dst(dst).set_imm(imm).set_off(offset),
@@ -205,14 +192,7 @@ impl EbpfGenerator<'_> {
         let imm: i32 = self.symbol_table.get_rand_imm();
         let imm_dw: i32 = self.symbol_table.get_rand_imm();
         let offset: i16 = self.symbol_table.get_rand_offset();
-
-        let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
-            0 => MemSize::Byte,
-            1 => MemSize::HalfWord,
-            2 => MemSize::Word,
-            3 => MemSize::DoubleWord,
-            _ => unreachable!(),
-        };
+        let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
 
         match self.symbol_table.rng.gen_range(0..2) {
             0 => {
@@ -239,27 +219,8 @@ impl EbpfGenerator<'_> {
         let src: u8 = self.symbol_table.get_rand_src_reg();
         let imm: i32 = self.symbol_table.get_rand_imm();
         let offset: i16 = self.symbol_table.get_rand_offset();
-
-        let condition: Cond = match self.symbol_table.rng.gen_range(0..11) {
-            0  => Cond::BitAnd,
-            1  => Cond::Equals,
-            2  => Cond::Greater,
-            3  => Cond::GreaterEquals,
-            4  => Cond::GreaterEqualsSigned,
-            5  => Cond::GreaterSigned,
-            6  => Cond::Lower,
-            7  => Cond::LowerEquals,
-            8  => Cond::LowerEqualsSigned,
-            9  => Cond::LowerSigned,
-            10 => Cond::NotEquals,
-            _  => unreachable!(),
-        };
-
-        let source: Source = match self.symbol_table.rng.gen_range(0..2) {
-            0 => Source::Imm,
-            1 => Source::Reg,
-            _ => unreachable!(),
-        };
+        let condition: Cond = self.symbol_table.get_rand_jump_condition();
+        let source: Source = self.symbol_table.get_rand_source();
 
         // Weighted to match number of jump instructions
         let instruction = match self.symbol_table.rng.gen_range(0..12) {
@@ -292,20 +253,8 @@ impl EbpfGenerator<'_> {
         // Move the stack pointer and at store something
         let stack_pointer: u8 = 10;
 
-        let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
-            0 => MemSize::Byte,
-            1 => MemSize::HalfWord,
-            2 => MemSize::Word,
-            3 => MemSize::DoubleWord,
-            _ => unreachable!(),
-        };
-
-        let move_stack_offset: i32 = match mem_size {
-            MemSize::Byte       => 1,
-            MemSize::HalfWord   => 2,
-            MemSize::Word       => 4,
-            MemSize::DoubleWord => 8,
-        };
+        let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
+        let move_stack_offset: i32 = self.symbol_table.get_mem_size_offset(mem_size);
 
         let initialized_register_count: usize = self.symbol_table.initialized_register_count();
 
@@ -339,20 +288,8 @@ impl EbpfGenerator<'_> {
     fn sequence_pop_from_stack(&mut self) -> i32 {
         let stack_pointer: u8 = 10;
 
-        let mem_size: MemSize = match self.symbol_table.rng.gen_range(0..4) {
-            0 => MemSize::Byte,
-            1 => MemSize::HalfWord,
-            2 => MemSize::Word,
-            3 => MemSize::DoubleWord,
-            _ => unreachable!(),
-        };
-
-        let move_stack_offset: i32 = match mem_size {
-            MemSize::Byte       => 1,
-            MemSize::HalfWord   => 2,
-            MemSize::Word       => 4,
-            MemSize::DoubleWord => 8,
-        };
+        let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
+        let move_stack_offset: i32 = self.symbol_table.get_mem_size_offset(mem_size);
 
         let initialized_register_count: usize = self.symbol_table.initialized_register_count();
 
