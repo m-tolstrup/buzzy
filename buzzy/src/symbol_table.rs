@@ -2,6 +2,8 @@ use rand::prelude::*;
 
 use rbpf::insn_builder::{
     MemSize,
+	Source,
+	Cond,
 };
 
 
@@ -196,6 +198,54 @@ impl SymbolTable {
 			offset = self.rng.gen_range(0..32767);
 		}
 		offset
+	}
+
+	pub fn get_rand_mem_size(&mut self) -> MemSize {
+		let mem_size: MemSize = match self.rng.gen_range(0..4) {
+            0 => MemSize::Byte,
+            1 => MemSize::HalfWord,
+            2 => MemSize::Word,
+            3 => MemSize::DoubleWord,
+            _ => unreachable!(),
+        };
+		mem_size
+	}
+
+	pub fn get_mem_size_offset(&self, mem_size: MemSize) -> i32 {
+		let bytes: i32 = match mem_size {
+			MemSize::Byte 	    => 1,
+			MemSize::HalfWord   => 2,
+			MemSize::Word       => 4,
+			MemSize::DoubleWord => 8,
+		};
+		bytes
+	}
+
+	pub fn get_rand_jump_condition(&mut self) -> Cond {
+		let condition: Cond = match self.rng.gen_range(0..11) {
+            0  => Cond::BitAnd,
+            1  => Cond::Equals,
+            2  => Cond::Greater,
+            3  => Cond::GreaterEquals,
+            4  => Cond::GreaterEqualsSigned,
+            5  => Cond::GreaterSigned,
+            6  => Cond::Lower,
+            7  => Cond::LowerEquals,
+            8  => Cond::LowerEqualsSigned,
+            9  => Cond::LowerSigned,
+            10 => Cond::NotEquals,
+            _  => unreachable!(),
+        };
+		condition
+	}
+
+	pub fn get_rand_source(&mut self) -> Source {
+		let source: Source = match self.rng.gen_range(0..2) {
+            0 => Source::Imm,
+            1 => Source::Reg,
+            _ => unreachable!(),
+        };
+		source
 	}
 
 	pub fn stack_to_top(&self) -> i32 {
