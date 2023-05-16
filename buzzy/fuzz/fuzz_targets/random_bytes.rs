@@ -83,7 +83,7 @@ fuzz_target!(|data: FuzzData| {
     if str_v_output.starts_with("1") {
         // Execute the eBPF program with uBPF (-j flag for JIT compile)
         let execute_output = Command::new("../ubpf/vm/test")
-                 .args(&["obj-files/data.o"])
+                 .args(&["-j", "obj-files/data.o"])
                  .output()
                  .expect("failed to execute process");
 
