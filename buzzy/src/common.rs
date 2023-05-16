@@ -1,3 +1,5 @@
+/* USED TO GATHER PERFORMANCE RESULTS WHEN GENERATING EBPF PROGRAMS CONSISTING OF COMPLETLY RANDOM BYTES */
+
 use arbitrary;
 
 #[derive(arbitrary::Arbitrary, Debug)]
@@ -19,7 +21,7 @@ impl Instruction {
             self.imm                    as u8,
             (self.imm >> 8)             as u8,
             (self.imm >> 16)            as u8,
-            (self.imm >> 25)            as u8,
+            (self.imm >> 24)            as u8,
         ];
         buffer
     }

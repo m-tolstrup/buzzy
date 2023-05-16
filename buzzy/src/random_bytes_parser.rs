@@ -1,5 +1,7 @@
 #![allow(unused_imports)]
 
+/* USED TO GATHER PERFORMANCE RESULTS WHEN GENERATING EBPF PROGRAMS CONSISTING OF COMPLETLY RANDOM BYTES */
+
 use std::fs::File;
 use std::path::Path;
 use std::str::FromStr;

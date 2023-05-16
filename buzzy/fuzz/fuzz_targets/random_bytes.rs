@@ -25,7 +25,8 @@ fuzz_target!(|data: FuzzData| {
     let verbose = false;
     let prog_length = data.prog.len();
 
-    // Pass it to the parser and parse it
+    // No program generation - the "eBPF program" is just random bytes, generated using Arbitrary
+
     let parser = RandomBytesParser::new(data.prog);
     let _parser_result = match parser.parse_prog() {
         Ok(_) => {
