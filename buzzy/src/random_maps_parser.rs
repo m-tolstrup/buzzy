@@ -28,18 +28,6 @@ use rbpf::insn_builder::{
 
 use crate::common::Map;
 
-pub struct MapParser {
-    pub maps: Vec<Map>,
-}
-
-impl MapParser {
-    pub fn new(_maps: Vec<Map>) -> MapParser {
-        MapParser { 
-            maps: _maps,
-        }
-    }
-}
-
 pub struct RandomMapsParser<'a> {
     pub generated_prog: BpfCode,
     strategy: &'a str,
@@ -95,7 +83,7 @@ impl RandomMapsParser<'_> {
         // 4 +- 2 random u8
         // completely random
         // random first byte
-        let maps = MapParser::new(self.maps).maps;
+        let maps = self.maps;
 
         let mut random_map: Vec<u8> = vec![];
 
