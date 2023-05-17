@@ -48,6 +48,7 @@ impl EbpfGenerator<'_> {
             "MapHeader" => {
                 self.init_zero();
                 self.init_map();
+                self.footer();
             },
             "RandomStackSequences" => {
                 self.init_zero();
