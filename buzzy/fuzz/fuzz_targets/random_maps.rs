@@ -14,23 +14,25 @@ use libfuzzer_sys::fuzz_target;
 extern crate buzzy;
 
 use crate::buzzy::ebpf_generator::EbpfGenerator;
-use crate::buzzy::elf_parser::ElfParser;
+use crate::buzzy::random_maps_parser::RandomMapsParser;
+use crate::buzzy::common::Map;
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct FuzzSeedData {
     seed: u32,
+    maps: Vec<Map>,
 }
 
 fuzz_target!(|data: FuzzSeedData| {
     // Generate a program - fuzzed structure provides randomness
-    let strategy = "MapHeader";
+    let strategy = "RandomMaps";
     let mut generator = EbpfGenerator::new(data.seed, strategy);
     generator.generate_program();
     let generated_program = generator.prog;
     let verbose = false;
 
     // Pass it to the parser and parse it
-    let parser = ElfParser::new(generated_program, strategy);
+    let parser = RandomMapsParser::new(generated_program, strategy, data.maps);
     let _parser_result = match parser.parse_prog() {
         Ok(_) => {
             // Do nothing, everything went Ok
