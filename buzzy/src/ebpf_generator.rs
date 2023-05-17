@@ -48,7 +48,13 @@ impl EbpfGenerator<'_> {
             "MapHeader" => {
                 self.init_zero();
                 self.init_map();
-                self.footer();
+                self.map_body();
+                self.map_footer();
+            },
+            "RandomMaps" => {
+                self.init_zero();
+                self.init_map();
+                self.map_footer();
             },
             "RandomStackSequences" => {
                 self.init_zero();
@@ -320,6 +326,44 @@ impl EbpfGenerator<'_> {
         }
     }
     
+    fn generate_bounds_jump(&mut self, reg: u8) {
+
+        let min_bound = self.symbol_table.rng.gen_range(-8192..8193);
+        self.prog.jump_conditional(Cond::Greater, Source::Imm).set_dst(reg).set_imm(min_bound).set_off(1).push();
+    }
+
+    fn select_regs_alu_instr(&mut self) {
+        let reg1: u8 = 3;
+        let reg2: u8 = 4;
+
+        // Choose a random (ALU) instruction with the two registers
+        // TODO swap bytes is missing
+        let instruction = match self.symbol_table.rng.gen_range(0..12) {
+            0  => self.prog.add(Source::Reg, Arch::X64),
+            1  => self.prog.sub(Source::Reg, Arch::X64),
+            2  => self.prog.mul(Source::Reg, Arch::X64),
+            3  => self.prog.div(Source::Reg, Arch::X64),
+            4  => self.prog.modulo(Source::Reg, Arch::X64),
+            5  => self.prog.bit_or(Source::Reg, Arch::X64),
+            6  => self.prog.bit_xor(Source::Reg, Arch::X64),
+            7  => self.prog.bit_and(Source::Reg, Arch::X64),
+            8  => self.prog.left_shift(Source::Reg, Arch::X64),
+            9  => self.prog.right_shift(Source::Reg, Arch::X64),
+            10 => self.prog.signed_right_shift(Source::Reg, Arch::X64),
+            11 => self.prog.mov(Source::Reg, Arch::X64),
+            _  => unreachable!(),
+        };
+
+        // Choose which register is the destination register of the operation and which is the source
+        match self.symbol_table.rng.gen_range(reg1..reg2+1) {
+            reg1 => { instruction.set_dst(reg1).set_src(reg2).push()
+            },
+            reg2 => { instruction.set_dst(reg2).set_src(reg1).push()
+            },
+            _ => unreachable!(),
+        };
+    }
+
     pub fn init_map(&mut self) {
         // Prepare the stack for "map_lookup_elem"
         //self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(0).push();
@@ -341,21 +385,27 @@ impl EbpfGenerator<'_> {
         //self.prog.exit().push();
 
         // Initialize two new registers 3 and 4, by reading from map = r0 = map(r1, r2)
-        // BPF_LDX_MEM(BPF_DW, this->reg1, BPF_REG_0, 0) this->reg1?
         //self.prog.load_x(MemSize::DoubleWord).set_dst(3).set_src(0).set_off(0).push();
         //self.prog.load_x(MemSize::DoubleWord).set_dst(4).set_src(0).set_off(8).push();
 
         // generate bounds for new registers 3 and 4, that can be used for operations
-        //self.prog.jump_conditional(Cond::Greater, Source::Imm).set_dst(3).set_imm(-8192).set_off(1).push();
-        //self.prog.jump_conditional(Cond::Greater, Source::Imm).set_dst(4).set_imm(8192).set_off(1).push();
+        //self.generate_bounds_jump(3);
+        //self.generate_bounds_jump(4);
     }
 
-    pub fn footer(&mut self) {
+    pub fn map_body(&mut self) {
+        // TODO branching operations as well on both reg/imm (symbol table tracks instr count and program size)
+        // self.random_jump_wrapper();
+        // TODO regs_alu_instr_wrapper(); for instr count gen
+        //self.select_regs_alu_instr();
+    }
+
+    pub fn map_footer(&mut self) {
         // add or sub operation(s) using registers 3 and 4, to ensure mem access
-        // r0 = 1 to ensure valid return value
         //self.prog.add(Source::Reg, Arch::X64).set_dst(4).set_src(3).push();
         //self.prog.add(Source::Reg, Arch::X64).set_dst(3).set_src(4).push();
 
+        // r0 = 1 to ensure valid return value
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(1).push();
     }
 

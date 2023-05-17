@@ -48,6 +48,12 @@ test = false
 doc = false
 
 [[bin]]
+name = "random_maps"
+path = "fuzz_targets/random_maps.rs"
+test = false
+doc = false
+
+[[bin]]
 name = "stack_sequence"
 path = "fuzz_targets/stack_sequence.rs"
 test = false
