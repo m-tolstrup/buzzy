@@ -2,6 +2,9 @@
 # A path is given to the .o file, and a number of instructions
 # The number of instructions is counted from the first instruction after the header bytes
 
+# EXAMPLE:
+# python3 translate.py ../buzzy/logs/error1684229043430.o 6
+
 import os
 import sys
 import subprocess
