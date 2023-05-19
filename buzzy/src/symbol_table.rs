@@ -168,16 +168,17 @@ impl SymbolTable {
 		// Return a random immediate
 		let imm: i32;
 		if self.select_numeric_edge_cases {
-			imm = match self.rng.gen_range(0..5) {
+			imm = match self.rng.gen_range(0..6) {
 				0 => 0,
 				1 => 1,
 				2 => -1,
-				3 => self.rng.gen_range(2..2147483647),
+				3 => -2147483648,
 				4 => 2147483647,
-				_ => unreachable!()
+				5 => self.rng.gen_range(-2147483648..=2147483647),
+				_ => unreachable!(),
 			};
 		} else {
-			imm = self.rng.gen_range(0..2147483647);
+			imm = self.rng.gen_range(-2147483648..=2147483647);
 		}
 		imm
 	}
@@ -186,7 +187,7 @@ impl SymbolTable {
 		// Return a random offset
 		let offset: i16;
 		if self.select_numeric_edge_cases {
-			offset = match self.rng.gen_range(0..7) {
+			offset = match self.rng.gen_range(0..9) {
 				0 => 0,
 				1 => -1,
 				2 => 1, // Byte
@@ -194,10 +195,12 @@ impl SymbolTable {
 				4 => 4, // Word
 				5 => 8,	// Double Word
 				6 => 32767,
-				_ => unreachable!()
+				7 => -32768,
+				8 => self.rng.gen_range(-32768..=32767),
+				_ => unreachable!(),
 			};
 		} else {
-			offset = self.rng.gen_range(0..32767);
+			offset = self.rng.gen_range(-32768..=32767);
 		}
 		offset
 	}
