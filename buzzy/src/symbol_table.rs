@@ -20,8 +20,7 @@ pub struct SymbolTable {
 	initialized_registers: Vec<u8>,
 	stored_registers: Vec<u8>,
 	loaded_registers: Vec<u8>,
-	stack_pointer_position: i32,
-	stack_total_size_used: i32,	
+	stack_height: i32,
 }
 
 impl SymbolTable {
@@ -61,9 +60,7 @@ impl SymbolTable {
 			loaded_registers: Vec::new(),
  			// How many bytes have been pushed to the stack (popped are subtracted)
 			// Used to give a rough idea of stack use - not intended to be accurate
-			stack_total_size_used: 0,
-			// Stack pointer position indicated in bytes
-			stack_pointer_position: 0,
+			stack_height: 0,
 		}
 	}
 
@@ -168,16 +165,17 @@ impl SymbolTable {
 		// Return a random immediate
 		let imm: i32;
 		if self.select_numeric_edge_cases {
-			imm = match self.rng.gen_range(0..5) {
+			imm = match self.rng.gen_range(0..6) {
 				0 => 0,
 				1 => 1,
 				2 => -1,
-				3 => self.rng.gen_range(2..2147483647),
+				3 => -2147483648,
 				4 => 2147483647,
-				_ => unreachable!()
+				5 => self.rng.gen_range(-2147483648..=2147483647),
+				_ => unreachable!(),
 			};
 		} else {
-			imm = self.rng.gen_range(0..2147483647);
+			imm = self.rng.gen_range(-2147483648..=2147483647);
 		}
 		imm
 	}
@@ -186,7 +184,7 @@ impl SymbolTable {
 		// Return a random offset
 		let offset: i16;
 		if self.select_numeric_edge_cases {
-			offset = match self.rng.gen_range(0..7) {
+			offset = match self.rng.gen_range(0..9) {
 				0 => 0,
 				1 => -1,
 				2 => 1, // Byte
@@ -194,10 +192,12 @@ impl SymbolTable {
 				4 => 4, // Word
 				5 => 8,	// Double Word
 				6 => 32767,
-				_ => unreachable!()
+				7 => -32768,
+				8 => self.rng.gen_range(-32768..=32767),
+				_ => unreachable!(),
 			};
 		} else {
-			offset = self.rng.gen_range(0..32767);
+			offset = self.rng.gen_range(-32768..=32767);
 		}
 		offset
 	}
@@ -251,13 +251,13 @@ impl SymbolTable {
 	}
 
 	pub fn stack_to_top(&self) -> i32 {
-		// Return number of bytes needed to set stack pointer at the top of the stack
-		512 - self.stack_pointer_position
+		// Return number of bytes to the stack top
+		512 - self.stack_height
 	}
 
 	pub fn stack_to_bottom(&self) -> i32 {
-		// Return number of bytes needed to set stack pointer at the bottom of the stack
-		self.stack_pointer_position
+		// Return number of bytes to the stack bottom
+		self.stack_height
 	}
 
 	pub fn get_random_stack_add_value(&mut self) -> i32 {
@@ -296,36 +296,27 @@ impl SymbolTable {
 		value
 	}
 
-	pub fn add_stack_pointer(&mut self, number: i32) {
-		// Keep track of stack pointer position
-		if self.stack_pointer_position + number <= 512 {
-				self.stack_pointer_position += number;
-		}
-	}
-
-	pub fn sub_stack_pointer(&mut self, number: i32) {
-		// Keep track of stack pointer position
-		if self.stack_pointer_position - number >= 0 {
-				self.stack_pointer_position -= number;
-		}
-	}
-
-	pub fn push_value_to_stack(&mut self, mem_size: MemSize) {
+	pub fn push_to_stack(&mut self, mem_size: MemSize) {
 		// Track how many bytes are stored on the stack
 		let bytes: i32 = self.get_mem_size_offset(mem_size);
 
 		// Keep the stored memory at a maximum of 512
-		if self.stack_total_size_used + bytes > 512 {
-			self.stack_total_size_used = 512;
+		if self.stack_height + bytes > 512 {
+			self.stack_height = 512;
 		} else {
-			self.stack_total_size_used += bytes;
+			self.stack_height += bytes;
 		}	
 	}
 
-	pub fn pop_value_from_stack(&mut self, mem_size: MemSize) {
+	pub fn pop_from_stack(&mut self, mem_size: MemSize) {
 		// Track how many bytes are stored on the stack
 		let bytes: i32 = self.get_mem_size_offset(mem_size);
 
-		self.stack_total_size_used -= bytes;
+		// Keep the stored memory at a maximum of 512
+		if self.stack_height - bytes < 0 {
+			self.stack_height = 0;
+		} else {
+			self.stack_height -= bytes;
+		}
 	}
 }

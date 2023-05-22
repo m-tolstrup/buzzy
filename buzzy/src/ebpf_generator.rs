@@ -118,7 +118,8 @@ impl EbpfGenerator<'_> {
 
     fn random_alu_wrapper(&mut self) -> i32{
         let max_alu: i32 = self.symbol_table.get_max_alu_instr();
-        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+1);
+        // Plus 2 because both of the following num ranges are non-inclusive
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+2);
         
         for _ in 1..instr_gen_count {
             self.select_random_alu_instr();
@@ -129,7 +130,8 @@ impl EbpfGenerator<'_> {
 
     fn random_jump_wrapper(&mut self) -> i32{
         let max_jump: i32 = self.symbol_table.get_max_jump_instr();
-        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_jump+1);
+        // Plus 2 because both of the following num ranges are non-inclusive
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_jump+2);
         
         for _ in 1..instr_gen_count {
             self.select_random_jump_instr();
@@ -259,6 +261,14 @@ impl EbpfGenerator<'_> {
         // Move the stack pointer and at store something
         let stack_pointer: u8 = 10;
 
+        // We are fuzzing after all - adding some random chaos to the stack operation
+        // This offset is not tracked, so it doesn't mess with the stack height
+        let random_extra_offset: i16 = match self.symbol_table.rng.gen_range(0..5) {
+            0..4 => 0,
+            4    => self.symbol_table.rng.gen_range(0..513),
+            _    => unreachable!(),
+        };
+
         let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
         let move_stack_offset: i32 = self.symbol_table.get_mem_size_offset(mem_size);
 
@@ -268,11 +278,11 @@ impl EbpfGenerator<'_> {
             // If zero registers has been initialized a instruction is generated anyways
             // You could return here, if this is not desired - it is fuzzing, generate what you want
             let src: u8 = self.symbol_table.get_rand_src_reg();
-            let offset: i16 = 0;
+            let offset: i16 = self.symbol_table.stack_to_bottom() as i16;
 
-            self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset).push();
+            self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset+random_extra_offset).push();
             self.symbol_table.store_from_register(src);
-            self.symbol_table.push_value_to_stack(mem_size);
+            self.symbol_table.push_to_stack(mem_size);
             
             return 1;
         } else {
@@ -280,11 +290,11 @@ impl EbpfGenerator<'_> {
 
             for i in 0..instr_gen_count {
                 let src: u8 = self.symbol_table.get_init_register(i);
-                let offset: i16 = i as i16 * move_stack_offset as i16;
+                let offset: i16 = self.symbol_table.stack_to_bottom() as i16;
 
-                self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset).push();
+                self.prog.store_x(mem_size).set_dst(stack_pointer).set_src(src).set_off(offset+random_extra_offset).push();
                 self.symbol_table.store_from_register(src);
-                self.symbol_table.push_value_to_stack(mem_size);
+                self.symbol_table.push_to_stack(mem_size);
             }
 
             return instr_gen_count as i32;
@@ -293,6 +303,14 @@ impl EbpfGenerator<'_> {
 
     fn sequence_pop_from_stack(&mut self) -> i32 {
         let stack_pointer: u8 = 10;
+
+        // We are fuzzing after all - adding some random chaos to the stack operation
+        // This offset is not tracked, so it doesn't mess with the stack height
+        let random_extra_offset: i16 = match self.symbol_table.rng.gen_range(0..5) {
+            0..4 => 0,
+            4    => self.symbol_table.rng.gen_range(0..513),
+            _    => unreachable!(),
+        };
 
         let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
         let move_stack_offset: i32 = self.symbol_table.get_mem_size_offset(mem_size);
@@ -303,11 +321,11 @@ impl EbpfGenerator<'_> {
             // If zero registers has been initialized a instruction is generated anyways
             // You could return here, if this is not desired - it is fuzzing, generate what you want
             let dst: u8 = self.symbol_table.get_rand_dst_reg();
-            let offset: i16 = 0;
+            let offset: i16 = self.symbol_table.stack_to_bottom() as i16;
 
-            self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset).push();
+            self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset+random_extra_offset).push();
             self.symbol_table.load_to_register(dst);
-            self.symbol_table.pop_value_from_stack(mem_size);
+            self.symbol_table.pop_from_stack(mem_size);
             
             return 1;
         } else {
@@ -315,11 +333,11 @@ impl EbpfGenerator<'_> {
 
             for i in 0..instr_gen_count {
                 let dst: u8 = self.symbol_table.get_init_register(i);
-                let offset: i16 = i as i16 * move_stack_offset as i16;
+                let offset: i16 = self.symbol_table.stack_to_bottom() as i16;
 
-                self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset).push();
+                self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset+random_extra_offset).push();
                 self.symbol_table.load_to_register(dst);
-                self.symbol_table.pop_value_from_stack(mem_size);
+                self.symbol_table.pop_from_stack(mem_size);
             }
 
             return instr_gen_count as i32;
