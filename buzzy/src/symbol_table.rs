@@ -75,8 +75,8 @@ impl SymbolTable {
 	pub fn gen_instr_count(&mut self) -> i32 {
 		// One in ten programs are 32 instructions or less
 		let instr_count = match self.rng.gen_range(0..100) {
-			0..90   => self.rng.gen_range(16..17),
-			90..100 => self.rng.gen_range(16..17),
+			0..90   => self.rng.gen_range(1..33),
+			90..100 => self.rng.gen_range(33..511),
 			_       => unreachable!(),
 		};
 		self.const_instr_count = instr_count;
