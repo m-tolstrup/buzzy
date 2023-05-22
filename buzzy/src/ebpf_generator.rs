@@ -308,7 +308,7 @@ impl EbpfGenerator<'_> {
         // This offset is not tracked, so it doesn't mess with the stack height
         let random_extra_offset: i16 = match self.symbol_table.rng.gen_range(0..5) {
             0..4 => 0,
-            4    => self.symbol_table.rng.gen_range(0..512),
+            4    => self.symbol_table.rng.gen_range(0..513),
             _    => unreachable!(),
         };
 
