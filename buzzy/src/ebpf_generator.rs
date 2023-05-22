@@ -263,10 +263,11 @@ impl EbpfGenerator<'_> {
 
         // We are fuzzing after all - adding some random chaos to the stack operation
         // This offset is not tracked, so it doesn't mess with the stack height
-        let random_extra_offset: i16 = self.symbol_table.rng.gen_range(0..5) {
-            0..3 => 0,
+        let random_extra_offset: i16 = match self.symbol_table.rng.gen_range(0..5) {
+            0..4 => 0,
             4    => self.symbol_table.rng.gen_range(0..512),
-        }
+            _    => unreachable!(),
+        };
 
         let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
         let move_stack_offset: i32 = self.symbol_table.get_mem_size_offset(mem_size);
@@ -305,10 +306,11 @@ impl EbpfGenerator<'_> {
 
         // We are fuzzing after all - adding some random chaos to the stack operation
         // This offset is not tracked, so it doesn't mess with the stack height
-        let random_extra_offset: i16 = self.symbol_table.rng.gen_range(0..5) {
-            0..3 => 0,
+        let random_extra_offset: i16 = match self.symbol_table.rng.gen_range(0..5) {
+            0..4 => 0,
             4    => self.symbol_table.rng.gen_range(0..512),
-        }
+            _    => unreachable!(),
+        };
 
         let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
         let move_stack_offset: i32 = self.symbol_table.get_mem_size_offset(mem_size);
@@ -333,7 +335,7 @@ impl EbpfGenerator<'_> {
                 let dst: u8 = self.symbol_table.get_init_register(i);
                 let offset: i16 = self.symbol_table.stack_to_bottom() as i16;
 
-                self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer+random_extra_offset).set_off(offset).push();
+                self.prog.load_x(mem_size).set_dst(dst).set_src(stack_pointer).set_off(offset+random_extra_offset).push();
                 self.symbol_table.load_to_register(dst);
                 self.symbol_table.pop_from_stack(mem_size);
             }
