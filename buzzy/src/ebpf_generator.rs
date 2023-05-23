@@ -129,11 +129,12 @@ impl EbpfGenerator<'_> {
                 break;
             }
     
-            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..3) {
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..5) {
                 0 => self.gen_single_rule_break(),
                 1 => self.random_alu_wrapper(),
                 2 => self.random_jump_wrapper(),
-                
+                3 => self.random_load_wrapper(),
+                4 => self.random_store_wrapper(),
                 _ => unreachable!(),
             };
     
@@ -172,6 +173,28 @@ impl EbpfGenerator<'_> {
         
         for _ in 1..=instr_gen_count {
             self.select_random_jump_instr();
+        }
+
+        return instr_gen_count;
+    }
+
+    fn random_store_wrapper(&mut self) -> i32{
+        let max_store: i32 = self.symbol_table.get_max_store_instr();
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_store);
+        
+        for _ in 1..=instr_gen_count {
+            self.select_random_store_instr();
+        }
+
+        return instr_gen_count;
+    }
+
+    fn random_load_wrapper(&mut self) -> i32{
+        let max_load: i32 = self.symbol_table.get_max_load_instr();
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_load);
+        
+        for _ in 1..=instr_gen_count {
+            self.select_random_load_instr();
         }
 
         return instr_gen_count;

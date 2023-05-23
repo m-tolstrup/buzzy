@@ -15,6 +15,8 @@ pub struct SymbolTable {
 	instr_count: i32,
 	max_alu: i32,
 	max_jump: i32,
+	max_load: i32,
+	max_store: i32,
 	select_numeric_edge_cases: bool,
 	select_random_registers: bool,
 	select_correct_stack_pointer: bool,
@@ -42,6 +44,10 @@ impl SymbolTable {
 			max_alu: 5,
 			// Maximum number of JUMP instructions in a row for sequences
 			max_jump: 1,
+			// Maximum number of LOAD instructions in a row for sequences
+			max_load: 3,
+			// Maximum number of STORE instructions in a row for sequences
+			max_store: 3,
 			// Select edge case values
 			select_numeric_edge_cases: true,
 			// select_edge_cases: _random_choices & (1 << 0) != 0,
@@ -94,6 +100,14 @@ impl SymbolTable {
 
 	pub fn get_max_jump_instr(&mut self) -> i32 {
 		self.max_jump
+	}
+
+	pub fn get_max_load_instr(&mut self) -> i32 {
+		self.max_load
+	}
+
+	pub fn get_max_store_instr(&mut self) -> i32 {
+		self.max_store
 	}
 
 	// ***** Symbol table functions are purposefully not 100% accurate ***** //
