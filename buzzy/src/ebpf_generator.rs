@@ -129,12 +129,11 @@ impl EbpfGenerator<'_> {
                 break;
             }
     
-            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..5) {
-                0 => self.sequence_mov_imm_to_reg(),
-                1 => self.sequence_pop_from_stack(),
-                2 => self.sequence_push_to_stack(),
-                3 => self.random_alu_wrapper(),
-                4 => self.random_jump_wrapper(),
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..3) {
+                0 => self.gen_single_rule_break(),
+                1 => self.random_alu_wrapper(),
+                2 => self.random_jump_wrapper(),
+                
                 _ => unreachable!(),
             };
     
@@ -142,12 +141,25 @@ impl EbpfGenerator<'_> {
         }
     }
 
+    fn gen_single_rule_break(&mut self) -> i32 {
+        // Generate a single "rule break"
+        // Idea of this function is to add it into other strategies
+        let generated_count: i32 = match self.symbol_table.rng.gen_range(0..2) {
+            0 => self.random_alu_wrapper(),
+            1 => self.random_jump_wrapper(),
+            _ => unreachable!(),
+        };
+
+        generated_count
+    }
+
+
     fn random_alu_wrapper(&mut self) -> i32{
         let max_alu: i32 = self.symbol_table.get_max_alu_instr();
         // Plus 2 because both of the following num ranges are non-inclusive
-        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+2);
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_alu);
         
-        for _ in 1..instr_gen_count {
+        for _ in 1..=instr_gen_count {
             self.select_random_alu_instr();
         }
 
@@ -156,10 +168,9 @@ impl EbpfGenerator<'_> {
 
     fn random_jump_wrapper(&mut self) -> i32{
         let max_jump: i32 = self.symbol_table.get_max_jump_instr();
-        // Plus 2 because both of the following num ranges are non-inclusive
-        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_jump+2);
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_jump);
         
-        for _ in 1..instr_gen_count {
+        for _ in 1..=instr_gen_count {
             self.select_random_jump_instr();
         }
 
@@ -309,8 +320,9 @@ impl EbpfGenerator<'_> {
             
             return 1;
         } else {
-            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..initialized_register_count+1);
+            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..=initialized_register_count);
 
+            // Below range is non-inclusive, as it is a length used as index
             for i in 0..instr_gen_count {
                 let src: u8 = self.symbol_table.get_init_register(i);
                 let offset: i16 = self.symbol_table.stack_to_bottom() as i16;
@@ -351,8 +363,9 @@ impl EbpfGenerator<'_> {
             
             return 1;
         } else {
-            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..initialized_register_count+1);
+            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..=initialized_register_count);
 
+            // Below range is non-inclusive, as it is a length used as index
             for i in 0..instr_gen_count {
                 let dst: u8 = self.symbol_table.get_init_register(i);
                 let offset: i16 = self.symbol_table.stack_to_bottom() as i16;
