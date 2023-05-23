@@ -28,6 +28,7 @@ The PREVAIL and uBPF submodules have some required dependencies.
   - `git submodule update --remote rbpf`
   - `git submodule update --remote buzzy/faerie`
   - `git submodule update --remote ubpf`
+  - `git submodule update --remote ebpf-verifier`
 - Build the [PREVAIL verifier](https://github.com/vbpf/ebpf-verifier) submodule
   - `cmake -B build -DCMAKE_BUILD_TYPE=Release`
   - `cmake --build build`
