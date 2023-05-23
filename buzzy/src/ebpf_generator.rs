@@ -56,9 +56,13 @@ impl EbpfGenerator<'_> {
                 self.init_map();
                 self.map_footer();
             },
-            "RandomStackSequences" => {
+            "StackSequences" => {
                 self.init_zero();
-                self.random_stack_sequences();
+                self.gen_stack_sequences();
+            },
+            "RuleBreak" => {
+                self.init_zero();
+                self.gen_rule_break();
             },
             _ => {
                 //Nothing
@@ -95,9 +99,10 @@ impl EbpfGenerator<'_> {
         }
     }
 
-    fn random_stack_sequences(&mut self) {
+    fn gen_stack_sequences(&mut self) {
         // This generation technique is pretty stack focused right now
         let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
+
         loop {
             if instr_gen_count <= 0 {
                 break;
@@ -112,6 +117,27 @@ impl EbpfGenerator<'_> {
                 _ => unreachable!(),
             };
 
+            instr_gen_count -= generated_count;
+        }
+    }
+
+    fn gen_rule_break(&mut self) {
+        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
+
+        loop {
+            if instr_gen_count <= 0 {
+                break;
+            }
+    
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..5) {
+                0 => self.sequence_mov_imm_to_reg(),
+                1 => self.sequence_pop_from_stack(),
+                2 => self.sequence_push_to_stack(),
+                3 => self.random_alu_wrapper(),
+                4 => self.random_jump_wrapper(),
+                _ => unreachable!(),
+            };
+    
             instr_gen_count -= generated_count;
         }
     }
@@ -176,8 +202,7 @@ impl EbpfGenerator<'_> {
 
     fn select_random_store_instr(&mut self) {
 
-        // "dst" is most likely to be stackpointer (R10) in this context?
-        let dst: u8 = self.symbol_table.get_rand_dst_reg();
+        let dst: u8 = self.symbol_table.get_stack_pointer();
         let src: u8 = self.symbol_table.get_rand_src_reg();
         let imm: i32 = self.symbol_table.get_rand_imm();
         let offset: i16 = self.symbol_table.get_rand_offset();
@@ -195,8 +220,7 @@ impl EbpfGenerator<'_> {
     fn select_random_load_instr(&mut self) {
         
         let dst: u8 = self.symbol_table.get_rand_dst_reg();
-        // "src" is most likely to be stackpointer (R10) in this context?
-        let src: u8 = self.symbol_table.get_rand_src_reg();
+        let src: u8 = self.symbol_table.get_stack_pointer();
         let imm: i32 = self.symbol_table.get_rand_imm();
         let imm_dw: i32 = self.symbol_table.get_rand_imm();
         let offset: i16 = self.symbol_table.get_rand_offset();
@@ -259,7 +283,7 @@ impl EbpfGenerator<'_> {
 
     fn sequence_push_to_stack(&mut self) -> i32 {
         // Move the stack pointer and at store something
-        let stack_pointer: u8 = 10;
+        let stack_pointer: u8 = self.symbol_table.get_stack_pointer();
 
         // We are fuzzing after all - adding some random chaos to the stack operation
         // This offset is not tracked, so it doesn't mess with the stack height
@@ -270,7 +294,6 @@ impl EbpfGenerator<'_> {
         };
 
         let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
-        let move_stack_offset: i32 = self.symbol_table.get_mem_size_offset(mem_size);
 
         let initialized_register_count: usize = self.symbol_table.initialized_register_count();
 
@@ -302,7 +325,7 @@ impl EbpfGenerator<'_> {
     }
 
     fn sequence_pop_from_stack(&mut self) -> i32 {
-        let stack_pointer: u8 = 10;
+        let stack_pointer: u8 = self.symbol_table.get_stack_pointer();
 
         // We are fuzzing after all - adding some random chaos to the stack operation
         // This offset is not tracked, so it doesn't mess with the stack height
@@ -313,7 +336,6 @@ impl EbpfGenerator<'_> {
         };
 
         let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
-        let move_stack_offset: i32 = self.symbol_table.get_mem_size_offset(mem_size);
 
         let initialized_register_count: usize = self.symbol_table.initialized_register_count();
 

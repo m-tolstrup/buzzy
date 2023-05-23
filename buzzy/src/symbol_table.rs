@@ -17,6 +17,7 @@ pub struct SymbolTable {
 	max_jump: i32,
 	select_numeric_edge_cases: bool,
 	select_random_registers: bool,
+	select_correct_stack_pointer: bool,
 	initialized_registers: Vec<u8>,
 	stored_registers: Vec<u8>,
 	loaded_registers: Vec<u8>,
@@ -49,6 +50,10 @@ impl SymbolTable {
 			// When false, only register 0 to 5 is selected
 			select_random_registers: false,
 			// select_random_registers: _random_choices & (2 << 0) != 0,
+
+			// If false, other register can be used to access the stack
+			// Based on "select_random_registers"
+			select_correct_stack_pointer: true,
 
 			// ***** VARIABLES TO TRACK PROGRAM ***** //
 
@@ -126,6 +131,20 @@ impl SymbolTable {
 				Some(num) => num,
 				None => self.rng.gen_range(0..6),
 			};
+		}
+		reg
+	}
+
+	pub fn get_stack_pointer(&mut self) -> u8 {
+		let reg: u8;
+		if self.select_correct_stack_pointer {
+			reg = 10;
+		} else {
+			if self.select_random_registers {
+				reg = self.rng.gen_range(0..11);
+			} else {
+				reg = self.rng.gen_range(0..6);
+			}
 		}
 		reg
 	}
