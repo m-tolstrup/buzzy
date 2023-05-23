@@ -38,7 +38,7 @@ The PREVAIL and uBPF submodules have some required dependencies.
   - `sudo make -C vm install`
 - Run the buzzy user-space eBPF fuzzing harness 
   - `cd buzzy`
-  - `cargo +nightly fuzz run test/random`
+  - `cargo +nightly fuzz run test/random/stack_sequence/random_maps`
 
 ## Trophies
 buzzy has found the following bugs:
