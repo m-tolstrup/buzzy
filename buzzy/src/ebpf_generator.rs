@@ -146,8 +146,7 @@ impl EbpfGenerator<'_> {
         // Generate a single "rule break"
         // Idea of this function is to add it into other strategies
         let generated_count: i32 = match self.symbol_table.rng.gen_range(0..2) {
-            0 => self.random_alu_wrapper(),
-            1 => self.random_jump_wrapper(),
+            0 => self.rule_break_write_to_stack_pointer(),
             _ => unreachable!(),
         };
 
@@ -400,6 +399,23 @@ impl EbpfGenerator<'_> {
 
             return instr_gen_count as i32;
         }
+    }
+
+    fn rule_break_write_to_stack_pointer(&mut self) -> i32 {
+        let dst: u8 = 10;
+        let src: u8 = self.symbol_table.get_rand_src_reg();
+        let imm: i32 = self.symbol_table.get_rand_imm();
+        let source: Source = self.symbol_table.get_rand_source();
+
+        let instruction = self.prog.mov(source, Arch::X64).set_dst(dst);
+
+        match source {
+            Source::Imm => instruction.set_imm(imm).push(),
+            Source::Reg => instruction.set_src(src).push(),
+            _ => unreachable!(),
+        };
+
+        1
     }
     
     fn generate_bounds_jump(&mut self, reg: u8) {
