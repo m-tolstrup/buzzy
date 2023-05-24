@@ -1,16 +1,17 @@
 [submodule "ubpf"]
 	path = ubpf
-	url = https://github.com/tobashi/ubpf
-	branch = main
+	url = https://github.com/iovisor/ubpf
+	ignore = dirty
 [submodule "ebpf-verifier"]
 	path = ebpf-verifier
 	url = https://github.com/vbpf/ebpf-verifier
 	ignore = dirty
 [submodule "rbpf"]
 	path = rbpf
-	url = https://github.com/m-tolstrup/rbpf
-	branch = master
+	url = https://github.com/qmonnet/rbpf
+	ignore = dirty
 [submodule "buzzy/faerie"]
 	path = buzzy/faerie
-	url = https://github.com/tobashi/faerie.git
+	url = https://github.com/tobashi/faerie
 	branch = master
+	ignore = dirty
