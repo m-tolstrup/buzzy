@@ -24,6 +24,8 @@ pub struct SymbolTable {
 	stored_registers: Vec<u8>,
 	loaded_registers: Vec<u8>,
 	stack_height: i32,
+	last_jump_offset: i16,
+	jump_range: i16,
 }
 
 impl SymbolTable {
@@ -37,9 +39,10 @@ impl SymbolTable {
 			instr_count: 0,
 			const_instr_count: 0,
 
-
 			// ***** VARIABLES MANUALLY SET FOR EXPERIMENTS - AFFECTING RANDOM CHOICES, ETC ***** //
 
+			// Jump range, used in attempts to make loops in the program
+			jump_range: 4,
 			// Maximum number of ALU instructions in a row for sequences
 			max_alu: 5,
 			// Maximum number of JUMP instructions in a row for sequences
@@ -72,6 +75,8 @@ impl SymbolTable {
  			// How many bytes have been pushed to the stack (popped are subtracted)
 			// Used to give a rough idea of stack use - not intended to be accurate
 			stack_height: 0,
+			// Used to track how far an opposite jump should be, to create a loop
+			last_jump_offset: 0,
 		}
 	}
 
@@ -351,5 +356,22 @@ impl SymbolTable {
 		} else {
 			self.stack_height -= bytes;
 		}
+	}
+
+	pub fn gen_rule_break_offset(&mut self) -> i16 {
+		// Flip the value of last generated offset to create back- and forward jumps, i.e. loops
+		let mut offset: i16 = self.last_jump_offset;
+		let negative_offset: i16 = 0 - offset;
+		let jump_range: i16 = self.jump_range;
+		let negative_jump_range: i16 = 0 - jump_range;
+
+		if offset == 0 {
+			offset = self.rng.gen_range(negative_jump_range..jump_range)
+		} else {
+			offset = self.rng.gen_range(negative_offset-2..negative_offset+2);
+		}
+
+		self.last_jump_offset = offset;
+		offset
 	}
 }

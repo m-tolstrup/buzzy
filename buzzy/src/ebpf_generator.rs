@@ -147,6 +147,7 @@ impl EbpfGenerator<'_> {
         // Idea of this function is to add it into other strategies
         let generated_count: i32 = match self.symbol_table.rng.gen_range(0..2) {
             0 => self.rule_break_write_to_stack_pointer(),
+            1 => self.rule_break_jump(),
             _ => unreachable!(),
         };
 
@@ -414,6 +415,15 @@ impl EbpfGenerator<'_> {
             Source::Reg => instruction.set_src(src).push(),
             _ => unreachable!(),
         };
+
+        1
+    }
+
+    fn rule_break_jump(&mut self) -> i32 {
+        let offset: i16 = self.symbol_table.gen_rule_break_offset();
+
+        // TODO maybe more than unconditional
+        self.prog.jump_unconditional().set_off(offset).push();
 
         1
     }
