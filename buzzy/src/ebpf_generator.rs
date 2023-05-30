@@ -56,9 +56,13 @@ impl EbpfGenerator<'_> {
                 self.init_map();
                 self.map_footer();
             },
-            "RandomStackSequences" => {
+            "StackSequences" => {
                 self.init_zero();
-                self.random_stack_sequences();
+                self.gen_stack_sequences();
+            },
+            "RuleBreak" => {
+                self.init_zero();
+                self.gen_rule_break();
             },
             _ => {
                 //Nothing
@@ -95,9 +99,10 @@ impl EbpfGenerator<'_> {
         }
     }
 
-    fn random_stack_sequences(&mut self) {
+    fn gen_stack_sequences(&mut self) {
         // This generation technique is pretty stack focused right now
         let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
+
         loop {
             if instr_gen_count <= 0 {
                 break;
@@ -116,12 +121,46 @@ impl EbpfGenerator<'_> {
         }
     }
 
+    fn gen_rule_break(&mut self) {
+        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
+
+        loop {
+            if instr_gen_count <= 0 {
+                break;
+            }
+    
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..5) {
+                0 => self.gen_single_rule_break(),
+                1 => self.random_alu_wrapper(),
+                2 => self.random_jump_wrapper(),
+                3 => self.random_load_wrapper(),
+                4 => self.random_store_wrapper(),
+                _ => unreachable!(),
+            };
+    
+            instr_gen_count -= generated_count;
+        }
+    }
+
+    fn gen_single_rule_break(&mut self) -> i32 {
+        // Generate a single "rule break"
+        // Idea of this function is to add it into other strategies
+        let generated_count: i32 = match self.symbol_table.rng.gen_range(0..2) {
+            0 => self.rule_break_write_to_stack_pointer(),
+            1 => self.rule_break_jump(),
+            _ => unreachable!(),
+        };
+
+        generated_count
+    }
+
+
     fn random_alu_wrapper(&mut self) -> i32{
         let max_alu: i32 = self.symbol_table.get_max_alu_instr();
         // Plus 2 because both of the following num ranges are non-inclusive
-        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+2);
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_alu);
         
-        for _ in 1..instr_gen_count {
+        for _ in 1..=instr_gen_count {
             self.select_random_alu_instr();
         }
 
@@ -130,11 +169,32 @@ impl EbpfGenerator<'_> {
 
     fn random_jump_wrapper(&mut self) -> i32{
         let max_jump: i32 = self.symbol_table.get_max_jump_instr();
-        // Plus 2 because both of the following num ranges are non-inclusive
-        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_jump+2);
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_jump);
         
-        for _ in 1..instr_gen_count {
+        for _ in 1..=instr_gen_count {
             self.select_random_jump_instr();
+        }
+
+        return instr_gen_count;
+    }
+
+    fn random_store_wrapper(&mut self) -> i32{
+        let max_store: i32 = self.symbol_table.get_max_store_instr();
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_store);
+        
+        for _ in 1..=instr_gen_count {
+            self.select_random_store_instr();
+        }
+
+        return instr_gen_count;
+    }
+
+    fn random_load_wrapper(&mut self) -> i32{
+        let max_load: i32 = self.symbol_table.get_max_load_instr();
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_load);
+        
+        for _ in 1..=instr_gen_count {
+            self.select_random_load_instr();
         }
 
         return instr_gen_count;
@@ -176,8 +236,7 @@ impl EbpfGenerator<'_> {
 
     fn select_random_store_instr(&mut self) {
 
-        // "dst" is most likely to be stackpointer (R10) in this context?
-        let dst: u8 = self.symbol_table.get_rand_dst_reg();
+        let dst: u8 = self.symbol_table.get_stack_pointer();
         let src: u8 = self.symbol_table.get_rand_src_reg();
         let imm: i32 = self.symbol_table.get_rand_imm();
         let offset: i16 = self.symbol_table.get_rand_offset();
@@ -195,8 +254,7 @@ impl EbpfGenerator<'_> {
     fn select_random_load_instr(&mut self) {
         
         let dst: u8 = self.symbol_table.get_rand_dst_reg();
-        // "src" is most likely to be stackpointer (R10) in this context?
-        let src: u8 = self.symbol_table.get_rand_src_reg();
+        let src: u8 = self.symbol_table.get_stack_pointer();
         let imm: i32 = self.symbol_table.get_rand_imm();
         let imm_dw: i32 = self.symbol_table.get_rand_imm();
         let offset: i16 = self.symbol_table.get_rand_offset();
@@ -259,7 +317,7 @@ impl EbpfGenerator<'_> {
 
     fn sequence_push_to_stack(&mut self) -> i32 {
         // Move the stack pointer and at store something
-        let stack_pointer: u8 = 10;
+        let stack_pointer: u8 = self.symbol_table.get_stack_pointer();
 
         // We are fuzzing after all - adding some random chaos to the stack operation
         // This offset is not tracked, so it doesn't mess with the stack height
@@ -270,7 +328,6 @@ impl EbpfGenerator<'_> {
         };
 
         let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
-        let move_stack_offset: i32 = self.symbol_table.get_mem_size_offset(mem_size);
 
         let initialized_register_count: usize = self.symbol_table.initialized_register_count();
 
@@ -286,8 +343,9 @@ impl EbpfGenerator<'_> {
             
             return 1;
         } else {
-            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..initialized_register_count+1);
+            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..=initialized_register_count);
 
+            // Below range is non-inclusive, as it is a length used as index
             for i in 0..instr_gen_count {
                 let src: u8 = self.symbol_table.get_init_register(i);
                 let offset: i16 = self.symbol_table.stack_to_bottom() as i16;
@@ -302,7 +360,7 @@ impl EbpfGenerator<'_> {
     }
 
     fn sequence_pop_from_stack(&mut self) -> i32 {
-        let stack_pointer: u8 = 10;
+        let stack_pointer: u8 = self.symbol_table.get_stack_pointer();
 
         // We are fuzzing after all - adding some random chaos to the stack operation
         // This offset is not tracked, so it doesn't mess with the stack height
@@ -313,7 +371,6 @@ impl EbpfGenerator<'_> {
         };
 
         let mem_size: MemSize = self.symbol_table.get_rand_mem_size();
-        let move_stack_offset: i32 = self.symbol_table.get_mem_size_offset(mem_size);
 
         let initialized_register_count: usize = self.symbol_table.initialized_register_count();
 
@@ -329,8 +386,9 @@ impl EbpfGenerator<'_> {
             
             return 1;
         } else {
-            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..initialized_register_count+1);
+            let instr_gen_count: usize = self.symbol_table.rng.gen_range(1..=initialized_register_count);
 
+            // Below range is non-inclusive, as it is a length used as index
             for i in 0..instr_gen_count {
                 let dst: u8 = self.symbol_table.get_init_register(i);
                 let offset: i16 = self.symbol_table.stack_to_bottom() as i16;
@@ -342,6 +400,32 @@ impl EbpfGenerator<'_> {
 
             return instr_gen_count as i32;
         }
+    }
+
+    fn rule_break_write_to_stack_pointer(&mut self) -> i32 {
+        let dst: u8 = 10;
+        let src: u8 = self.symbol_table.get_rand_src_reg();
+        let imm: i32 = self.symbol_table.get_rand_imm();
+        let source: Source = self.symbol_table.get_rand_source();
+
+        let instruction = self.prog.mov(source, Arch::X64).set_dst(dst);
+
+        match source {
+            Source::Imm => instruction.set_imm(imm).push(),
+            Source::Reg => instruction.set_src(src).push(),
+            _ => unreachable!(),
+        };
+
+        1
+    }
+
+    fn rule_break_jump(&mut self) -> i32 {
+        let offset: i16 = self.symbol_table.gen_rule_break_offset();
+
+        // TODO maybe more than unconditional
+        self.prog.jump_unconditional().set_off(offset).push();
+
+        1
     }
     
     fn generate_bounds_jump(&mut self, reg: u8) {
