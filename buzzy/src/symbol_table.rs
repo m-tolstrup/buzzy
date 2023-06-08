@@ -17,6 +17,7 @@ pub struct SymbolTable {
 	max_jump: i32,
 	max_load: i32,
 	max_store: i32,
+	select_illegal_random_values: bool,
 	select_numeric_edge_cases: bool,
 	select_random_registers: bool,
 	select_correct_stack_pointer: bool,
@@ -54,6 +55,9 @@ impl SymbolTable {
 			// Select edge case values
 			select_numeric_edge_cases: true,
 			// select_edge_cases: _random_choices & (1 << 0) != 0,
+
+			// Used to select completly random values experiment, e.g. register above 10
+			select_illegal_random_values: true,
 
 			// Select completely random registers
 			// When false, only register 0 to 5 is selected
@@ -119,6 +123,10 @@ impl SymbolTable {
 	// ***** The reason being that the fuzzer should generate some strange programs that are not too correct ***** //
 
 	pub fn get_rand_dst_reg(&mut self) -> u8 {
+		if select_illegal_random_values {
+			return self.rng.gen_range(0..256);
+		}
+
 		// If something has been stored from the register, it is probably a good dst for a new value
 		let reg: u8;
 		if self.stored_registers.is_empty() {
@@ -137,6 +145,10 @@ impl SymbolTable {
 	}
 
 	pub fn get_rand_src_reg(&mut self) -> u8 {
+		if select_illegal_random_values {
+			return self.rng.gen_range(0..256);
+		}
+
 		// If something has been loaded into a register, it is probably a good src
 		let reg: u8;
 		if self.loaded_registers.is_empty() {
@@ -200,6 +212,10 @@ impl SymbolTable {
 	}
 
 	pub fn get_rand_imm(&mut self) -> i32 {
+		if select_illegal_random_values {
+			return self.rng.gen_range(-2147483648..=2147483647);
+		}
+
 		// Return a random immediate
 		let imm: i32;
 		if self.select_numeric_edge_cases {
@@ -219,6 +235,10 @@ impl SymbolTable {
 	}
 	
 	pub fn get_rand_offset(&mut self) -> i16 {
+		if select_illegal_random_values {
+			return 8 => self.rng.gen_range(-32768..=32767);
+		}
+
 		// Return a random offset
 		let offset: i16;
 		if self.select_numeric_edge_cases {
