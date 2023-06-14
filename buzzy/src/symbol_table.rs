@@ -57,12 +57,11 @@ impl SymbolTable {
 			// select_edge_cases: _random_choices & (1 << 0) != 0,
 
 			// Used to select completly random values experiment, e.g. register above 10
-			select_illegal_random_values: true,
+			select_illegal_random_values: false,
 
 			// Select completely random registers
 			// When false, only register 0 to 5 is selected
 			select_random_registers: false,
-			// select_random_registers: _random_choices & (2 << 0) != 0,
 
 			// If false, other register can be used to access the stack
 			// Based on "select_random_registers"
@@ -95,8 +94,8 @@ impl SymbolTable {
 	pub fn gen_instr_count(&mut self) -> i32 {
 		// One in ten programs are 32 instructions or less
 		let instr_count = match self.rng.gen_range(0..100) {
-			0..90   => self.rng.gen_range(1..33),
-			90..100 => self.rng.gen_range(33..511),
+			0..90   => self.rng.gen_range(1..65),
+			90..100 => self.rng.gen_range(65..511),
 			_       => unreachable!(),
 		};
 		self.const_instr_count = instr_count;
@@ -123,8 +122,8 @@ impl SymbolTable {
 	// ***** The reason being that the fuzzer should generate some strange programs that are not too correct ***** //
 
 	pub fn get_rand_dst_reg(&mut self) -> u8 {
-		if select_illegal_random_values {
-			return self.rng.gen_range(0..256);
+		if self.select_illegal_random_values {
+			return self.rng.gen_range(0..=255);
 		}
 
 		// If something has been stored from the register, it is probably a good dst for a new value
@@ -145,8 +144,8 @@ impl SymbolTable {
 	}
 
 	pub fn get_rand_src_reg(&mut self) -> u8 {
-		if select_illegal_random_values {
-			return self.rng.gen_range(0..256);
+		if self.select_illegal_random_values {
+			return self.rng.gen_range(0..=255);
 		}
 
 		// If something has been loaded into a register, it is probably a good src
@@ -212,7 +211,7 @@ impl SymbolTable {
 	}
 
 	pub fn get_rand_imm(&mut self) -> i32 {
-		if select_illegal_random_values {
+		if self.select_illegal_random_values {
 			return self.rng.gen_range(-2147483648..=2147483647);
 		}
 
@@ -235,8 +234,8 @@ impl SymbolTable {
 	}
 	
 	pub fn get_rand_offset(&mut self) -> i16 {
-		if select_illegal_random_values {
-			return 8 => self.rng.gen_range(-32768..=32767);
+		if self.select_illegal_random_values {
+			return self.rng.gen_range(-32768..=32767);
 		}
 
 		// Return a random offset
