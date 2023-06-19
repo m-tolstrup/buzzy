@@ -264,23 +264,43 @@ impl SymbolTable {
 
 	pub fn get_smart_jump_offset(&mut self) -> i16 {
 		let offset: i16 = match self.rng.gen_range(0..20) {
-			0..18  => self.calculate_smart_offset(),
-			19..20 => self.get_rand_offset(),
-			_ => unreachable!(),
+			0..19  => self.calculate_smart_offset(),
+			19..20 => self.get_rand_offset(), // Add a chance to generate something fuzzy
+			_      => unreachable!(),
         };
 		offset
 	}
 
-	pub fn calculate_smart_offset(&mut self) -> i16 {
-
-		let backwards: i16 = self.generated_instr_count as i16;
-		let forwards: i16 = (self.total_prog_instr_count - self.generated_instr_count) as i16;
-
+	fn calculate_smart_offset(&mut self) -> i16 {
 		let offset: i16 = match self.rng.gen_range(0..2) {
-			0 => self.rng.gen_range(1..backwards),
-			1 => self.rng.gen_range(1..forwards),
+			0 => self.generate_smart_backward(),
+			1 => self.generate_smart_forward(),
 			_ => unreachable!(),
 		};
+
+		offset
+	}
+
+	fn generate_smart_backward(&mut self) -> i16 {
+		let backwards: i16 = self.generated_instr_count as i16;
+
+		if backwards == 0 {
+			return backwards;
+		}
+
+		let offset = self.rng.gen_range(1..backwards);
+
+		0 - offset // return negative jump offset since backwards
+	}
+
+	fn generate_smart_forward(&mut self) -> i16 {
+		let forwards: i16 = (self.total_prog_instr_count - self.generated_instr_count) as i16;
+
+		if forwards <= 0 {
+			return 0;
+		}
+
+		let offset = self.rng.gen_range(1..forwards);
 
 		offset
 	}
