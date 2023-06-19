@@ -2,6 +2,11 @@ import os
 import sys
 import subprocess
 
+# Similar to the translate.py script, but this also prints the output of PREVAIL and uBPF (by running them)
+# The script takes two arguments:
+# First: The last digits of the error file, the script matches the rest.
+# Second: The number of instructions to print. Counted from the first instruction after the header bytes.
+
 prevail = os.path.join("..", "ebpf-verifier")
 ubpf = os.path.join("..", "ubpf", "vm")
 logs = os.path.join("..", "buzzy", "logs")
