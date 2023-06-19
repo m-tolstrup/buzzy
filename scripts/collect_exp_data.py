@@ -1,5 +1,9 @@
 import os
 
+# The script is pretty deprecated - might get deleted soon
+# These results weren't really used in the final project report
+# Jump error and lddw error were relevant when the script was written
+
 results = {
     "total_count": 0,
     "avg_time": 0.0,
@@ -21,6 +25,9 @@ results = {
     "jump_err": 0,
     "lddw_err": 0
 }
+
+# File used is the buzzy/logs/exp-data.txt file
+path = os.path.join("..", "buzzy", "logs", "exp-data.txt")
 
 def handle_line(line):
     
@@ -57,8 +64,6 @@ def handle_line(line):
         results["i_avg_mem"] = (results["i_avg_mem"] * results["invalid"] + memory) / (results["invalid"] + 1)
 
 def main():
-    path = os.path.join("..", "buzzy", "logs", "exp-data.txt")
-
     lines = []
 
     with open(path, 'r') as file:
@@ -103,5 +108,7 @@ def print_results():
     print(result_string)
 
 if __name__ == "__main__":
+    # Collect data on PREVAIL memory and time usage for generated valid/invalid programs.
+    # File used is the buzzy/logs/exp-data.txt file
     main()
     print_results()
