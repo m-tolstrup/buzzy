@@ -1,6 +1,7 @@
 # buzzy
 
-This project was developed as a part of a master thesis at Aalborg University. The project focused on fuzzing eBPF technolgoies. For this, we targeted the PREVAIL verifier and uBPF virtual machine, in order to run a setup similar to a differential fuzzer, to find conformance issues between the two. The main bulk of code written for the project consisted of a eBPF program generator, and a parser to produce ELF files.
+This project was developed as a part of a master thesis at Aalborg University. The project focused on fuzzing eBPF technologies.
+We targeted the PREVAIL verifier and uBPF virtual machine, to find conformance issues between the two. The main bulk of code written for the project consists of an eBPF program generator, and a parser to produce ELF files.
 
 We will make the project report available when we have defended the thesis.
 
