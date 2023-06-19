@@ -17,4 +17,7 @@ def main():
                 error_dict[result] = str(file)
 
 if __name__ == "__main__":
-    print(error_dict)
+    # Indirectly prints all found errors by running erroneous programs in uBPF
+    # uBPF stderr is not the reported error when running
+    # Maybe create issue on their repo to extend this
+    main()
