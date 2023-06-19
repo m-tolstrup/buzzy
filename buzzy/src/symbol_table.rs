@@ -11,8 +11,8 @@ pub struct SymbolTable {
 	pub rng: ThreadRng,
 	seed: u32,
 	
-	pub const_instr_count: i32,
-	instr_count: i32,
+	pub total_prog_instr_count: i32,
+	generated_instr_count: i32,
 	max_alu: i32,
 	max_jump: i32,
 	max_load: i32,
@@ -37,8 +37,8 @@ impl SymbolTable {
 			seed: _seed,
 
 			// Set when gen_instr_count is called
-			instr_count: 0,
-			const_instr_count: 0,
+			total_prog_instr_count: 0,
+			generated_instr_count: 0,
 
 			// ***** VARIABLES MANUALLY SET FOR EXPERIMENTS - AFFECTING RANDOM CHOICES, ETC ***** //
 
@@ -83,22 +83,25 @@ impl SymbolTable {
 		}
 	}
 
-	pub fn get_instr_count(&mut self) -> i32 {
-		self.instr_count
+	pub fn get_generated_instr_count(&mut self) -> i32 {
+		self.generated_instr_count
 	}
 
-	pub fn set_instr_count(&mut self, i:i32) {
-		self.instr_count = i;
+	pub fn set_generated_instr_count(&mut self, i:i32) {
+		self.generated_instr_count = i;
 	}
 
 	pub fn gen_instr_count(&mut self) -> i32 {
 		// One in ten programs are 32 instructions or less
+		// We (almost) always init zero and push exit, so two are subtracted from the range here
 		let instr_count = match self.rng.gen_range(0..100) {
 			0..90   => self.rng.gen_range(1..33),
 			90..100 => self.rng.gen_range(33..511),
 			_       => unreachable!(),
 		};
-		self.const_instr_count = instr_count;
+
+		self.total_prog_instr_count = instr_count;
+
 		instr_count
 	}
 
@@ -270,15 +273,15 @@ impl SymbolTable {
 
 	pub fn calculate_smart_offset(&mut self) -> i16 {
 
-		let backwards: i16 = self.instr_count as i16;
-		let forwards: i16 = (self.const_instr_count - self.instr_count) as i16;
+		let backwards: i16 = self.generated_instr_count as i16;
+		let forwards: i16 = (self.total_prog_instr_count - self.generated_instr_count) as i16;
 
 		let offset: i16 = match self.rng.gen_range(0..2) {
 			0 => self.rng.gen_range(1..backwards),
 			1 => self.rng.gen_range(1..forwards),
 			_ => unreachable!(),
 		};
-		
+
 		offset
 	}
 
