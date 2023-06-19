@@ -16,7 +16,7 @@ The Buzzy project has the following folder structure:
 - **rbpf** (Submodule) (Rust eBPF)
   - We use the eBPF structures provided by this Rust eBPF crate to generate eBPF programs.
 - **buzzy**
-  - Our fuzzing harness utilizing a generator and ELF file parser.
+  - Our fuzzing harness which utilizes a generator and ELF file parser.
 - **buzzy/faerie**
   - Used to parse generated programs and produce ELF files.
 - **scripts**
