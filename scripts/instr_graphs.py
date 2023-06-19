@@ -1,9 +1,9 @@
 import os
 import matplotlib.pyplot as plt
 
-def main():
-    path = os.path.join("..", "buzzy", "logs", "exp-data.txt")
+path = os.path.join("..", "buzzy", "logs", "exp-data.txt")
 
+def main():
     lines = []
     valid_program_count_list = [0] * 512
     invalid_program_count_list = [0] * 512
@@ -36,4 +36,5 @@ def main():
     plt.show()
 
 if __name__ == "__main__":
+    # Column diagram for percentages of programs verified as safe by PREVAIL over number of instructions in the program
     main()

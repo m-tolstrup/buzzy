@@ -1,12 +1,12 @@
 # Scripts
 
-Different Python scripts used to set up different eBPF utilities in the kernel.
-The scripts used to perform eBPF operations, or similar, are written using BCC; a Python package for eBPF.
-
-## Install Guide
-
-Install guide for BCC found [here](https://github.com/iovisor/bcc/blob/master/INSTALL.md).
+Different Python scripts to gather results for thesis experiments, and aggregating fuzzing results and errors.
 
 ## Scripts Overview
 
-- `translate.py` Translate ELF bytecode into a rBPF program containing a disassembler. The disassembler will print human readable instructions.
+- `collect_exp_data.py` Get results for PREVAIL verification time and memory usage.
+- `count_errors.py` Counts the errors encountered during unmarshaling in PREVAIL.
+- `instr_graph.py` Create a column diagram for percentage of safe programs over program instruction count.
+- `print_all_errors.py` Print all generated errors indirectly by running erroneous programs in uBPF.
+- `print_target_output.py` Print the human readable bytecode of a program, and the output of PREVAIL and uBPF. 
+- `translate.py` Translate ELF bytecode into a rBPF program containing a disassembler. The disassembler will print human readable bytecode instructions.

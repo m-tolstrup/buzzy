@@ -1,6 +1,6 @@
 import os
 
-# This script looks in the logs/exp-data.txt file and prints the different errors encounted
+# This script looks in the buzzy/logs/exp-data.txt file and prints the different errors encounted during unmarshaling in PREVAIL
 
 results = {
     "valid": 0,
@@ -8,9 +8,9 @@ results = {
     "unmarshaling": 0,
 }
 
-def main():
-    path = os.path.join("..", "buzzy", "logs", "exp-data.txt")
+path = os.path.join("..", "buzzy", "logs", "exp-data.txt")
 
+def main():
     lines = []
 
     with open(path, 'r') as file:
