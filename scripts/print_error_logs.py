@@ -1,9 +1,11 @@
 import os
 import subprocess
 
+prevail = os.path.join("..", "ebpf-verifier")
+ubpf = os.path.join("..", "ubpf", "vm")
+
 def main():
-    prevail = os.path.join("..", "ebpf-verifier")
-    ubpf = os.path.join("..", "ubpf", "vm")
+
     error_logs = os.path.join("error-logs")
 
     for file in os.listdir(error_logs):
