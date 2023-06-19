@@ -288,6 +288,8 @@ impl SymbolTable {
 			return backwards;
 		}
 
+		println!("{} backwards", backwards);
+
 		let offset = self.rng.gen_range(1..backwards);
 
 		0 - offset // return negative jump offset since backwards
@@ -296,9 +298,11 @@ impl SymbolTable {
 	fn generate_smart_forward(&mut self) -> i16 {
 		let forwards: i16 = (self.total_prog_instr_count - self.generated_instr_count) as i16;
 
-		if forwards <= 0 {
+		if forwards <= 1 {
 			return 0;
 		}
+
+		println!("{} forwards", forwards);
 
 		let offset = self.rng.gen_range(1..forwards);
 

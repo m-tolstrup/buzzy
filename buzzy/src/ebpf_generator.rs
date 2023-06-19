@@ -78,7 +78,7 @@ impl EbpfGenerator<'_> {
     fn random_instructions(&mut self) {
         
         loop {
-            if self.symbol_table.get_generated_instr_count() == self.symbol_table.total_prog_instr_count {
+            if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
             }
 
@@ -99,7 +99,7 @@ impl EbpfGenerator<'_> {
     fn gen_stack_sequences(&mut self) {
         // This generation technique is pretty stack focused right now
         loop {
-            if self.symbol_table.get_generated_instr_count() == self.symbol_table.total_prog_instr_count {
+            if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
             }
 
@@ -120,7 +120,7 @@ impl EbpfGenerator<'_> {
 
     fn gen_rule_break(&mut self) {
         loop {
-            if self.symbol_table.get_generated_instr_count() == self.symbol_table.total_prog_instr_count {
+            if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
             }
     
