@@ -6,9 +6,6 @@ prevail = os.path.join("..", "ebpf-verifier")
 ubpf = os.path.join("..", "ubpf", "vm")
 logs = os.path.join("..", "buzzy", "logs")
 
-o_path = os.path.join(*sys.argv[1].split("/"))
-instr_count = int(sys.argv[2])
-
 def main():
 
     if len(sys.argv) > 2:

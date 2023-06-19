@@ -26,13 +26,15 @@ def main():
 
                 error_path = os.path.join(logs, file)
 
+                print(error_path)
+
                 # Read bytes, but skip 64 header bytes
                 try:
                     elf_bytes = b""
                     with open(error_path, 'rb') as f:
                         f.read(64)
                         # Each instruction is eight bytes
-                        elf_bytes += f.read(instr_count * 8)
+                        elf_bytes += f.read(int(instr_count) * 8)
                 except:
                     print("Failed to read from .o file")
 
