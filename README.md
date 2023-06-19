@@ -60,7 +60,7 @@ We see the following areas as next the additions or changes for buzzy:
 
 - **Move away from cargo-fuzz**: cargo-fuzz only ended up being used for what is essentially a looping mechanism. Implementing a version of this that would better suit buzzy would be greatly beneficial for the project.
 - **Guided fuzzing**: Extending above, this setup could allow for better guided fuzzing.
-- **Extendned fault detection**: For the RPEVAIL/uBPF setup, buzzy only observed for conformance issues between the targets. No run time behavior or similar is captured.
+- **Extended fault detection**: For the PREVAIL/uBPF setup, Buzzy only observed conformance issues between the targets. No run time behavior or similar is captured.
 - **Bug taming**: Some bugs are generated often. Mechanisms to handle this would be useful.
 - **More strategies**: We think that strategies revolving around program type and context is the next step for strategies.
 
