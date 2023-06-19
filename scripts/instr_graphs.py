@@ -29,8 +29,8 @@ def main():
             percentages.append((valid_program_count_list[i]/invalid_program_count_list[i])*100)
 
 
-    plt.plot(percentages[1:32])
-    plt.title('Random Instructions')
+    plt.bar(range(1, 16), percentages[1:16])
+    plt.title('Random Instructions - Legal Values')
     plt.ylabel('Percentage of valid programs')
     plt.xlabel('Number of instructions')
     plt.show()
