@@ -1,22 +1,28 @@
 # buzzy
 
-Master project at Aalborg University.
+This project was developed as a part of a master thesis at Aalborg University. The project focused on fuzzing eBPF technolgoies. For this, we targeted the PREVAIL verifier and uBPF virtual machine, in order to run a setup similar to a differential fuzzer, to find conformance issues between the two. The main bulk of code written for the project consisted of a eBPF program generator, and a parser to produce ELF files.
 
-Main focus is to write an eBPF program generator, with the goal of being able to produce programs fast, and hopefully let some slip through eBPF verifiers.
-The project does this by utilizing a fuzz harness.
+We will make the project report available when we have defended the thesis.
 
 ## Project Structure
 
-The project has the following structure:
+The buzzy project has the following folder structure:
 
-- PREVAIL (Submodule) (Polynomial-Runtime eBPF Verifier using an Abstract Interpretation Layer)
+- **PREVAIL** (Submodule) (Polynomial-Runtime eBPF Verifier using an Abstract Interpretation Layer)
   - We use the PREVAIL verifier, to verify generated eBPF programs.
-- uBPF (Submodule) (User space eBPF verifier and JIT-compiler for C programs)
-  - Currently not used, but the intention is to use the user space JIT-compiler.
-- rbpf (Submodule) (Rust eBPF)
-  - As our generator is written in Rust, we use the eBPF structures provided by this Rust eBPF crate.
-- buzzy
-  - Our fuzzing harness utilizing a generator and rBPF assembler.
+- **uBPF** (Submodule) (User space eBPF verifier and JIT-compiler for C programs)
+  - We use the uBPF virtual machine to run the verified programs.
+- **rbpf** (Submodule) (Rust eBPF)
+  - We use the eBPF structures provided by this Rust eBPF crate to generate eBPF programs.
+- **buzzy**
+  - Our fuzzing harness utilizing a generator and ELF file parser.
+- **buzzy/faerie**
+  - Used to parse generated programs and produce ELF files.
+- **scripts**
+  - Scripts used for experiments for the report and quick bug/error overviews
+
+
+We used buzzy to target the PREVAIL verifier and uBPF virtual machine, but buzzy should be applicable to other eBPF technolgies, without much implementation overhead. In the future, PREVAIL and uBPF might be removed as submodules.
 
 All submodules were installed/compiled by following the README.md provided by the projects.
 
@@ -42,7 +48,19 @@ The PREVAIL and uBPF submodules have some required dependencies.
   - `cargo +nightly fuzz run test/random/stack_sequence/random_maps`
 
 ## Trophies
-buzzy has found the following bugs:
+buzzy has found the following (confirmed) bugs:
 
 - [Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/vbpf/ebpf-verifier/issues/484)
+- [Segmentation fault (core dumped) - Null value in modulo operations](https://github.com/vbpf/ebpf-verifier/issues/493)
+
+## Future Work
+
+We see the following areas as next the additions or changes for buzzy:
+
+- **Move away from cargo-fuzz**: cargo-fuzz only ended up being used for what is essentially a looping mechanism. Implementing a version of this that would better suit buzzy would be greatly beneficial for the project.
+- **Guided fuzzing**: Extending above, this setup could allow for better guided fuzzing.
+- **Extendned fault detection**: For the RPEVAIL/uBPF setup, buzzy only observed for conformance issues between the targets. No run time behavior or similar is captured.
+- **Bug taming**: Some bugs are generated often. Mechanisms to handle this would be useful.
+- **More strategies**: We think that strategies revolving around program type and context is the next step for strategies.
+
 
