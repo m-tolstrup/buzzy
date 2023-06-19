@@ -49,7 +49,7 @@ The PREVAIL and uBPF submodules have some required dependencies.
   - `cargo +nightly fuzz run test/random/stack_sequence/random_maps`
 
 ## Trophies
-buzzy has found the following (confirmed) bugs:
+Buzzy has found the following (confirmed) bugs:
 
 - [Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/vbpf/ebpf-verifier/issues/484)
 - [Segmentation fault (core dumped) - Null value in modulo operations](https://github.com/vbpf/ebpf-verifier/issues/493)
