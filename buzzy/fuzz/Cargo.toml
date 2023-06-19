@@ -36,7 +36,7 @@ test = false
 doc = false
 
 [[bin]]
-name = "random-bytes"
+name = "random_bytes"
 path = "fuzz_targets/random_bytes.rs"
 test = false
 doc = false
@@ -56,5 +56,11 @@ doc = false
 [[bin]]
 name = "stack_sequence"
 path = "fuzz_targets/stack_sequence.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "rule_break"
+path = "fuzz_targets/rule_break.rs"
 test = false
 doc = false

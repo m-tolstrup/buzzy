@@ -114,6 +114,7 @@ impl EbpfGenerator<'_> {
                 2 => self.sequence_push_to_stack(),
                 3 => self.random_alu_wrapper(),
                 4 => self.random_jump_wrapper(),
+                // 5 => self.gen_single_rule_break(),
                 _ => unreachable!(),
             };
 
