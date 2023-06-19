@@ -1,13 +1,11 @@
-# This script translates an .o file using the rBPF crate in this project
-# A path is given to the .o file, and a number of instructions
-# The number of instructions is counted from the first instruction after the header bytes
-
-# EXAMPLE:
-# python3 translate.py ../buzzy/logs/error1684229043430.o 6
-
 import os
 import sys
 import subprocess
+
+# This script translates an .o file using the rBPF crate in this project
+# The script takes two arguments:
+# First: The last digits of the error file, the script matches the rest.
+# Second: The number of instructions to print. Counted from the first instruction after the header bytes.
 
 logs = os.path.join("..", "buzzy", "logs")
 
