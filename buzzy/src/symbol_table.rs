@@ -94,8 +94,8 @@ impl SymbolTable {
 	pub fn gen_instr_count(&mut self) -> i32 {
 		// One in ten programs are 32 instructions or less
 		let instr_count = match self.rng.gen_range(0..100) {
-			0..90   => self.rng.gen_range(1..65),
-			90..100 => self.rng.gen_range(65..511),
+			0..90   => self.rng.gen_range(1..33),
+			90..100 => self.rng.gen_range(33..511),
 			_       => unreachable!(),
 		};
 		self.const_instr_count = instr_count;
@@ -256,6 +256,29 @@ impl SymbolTable {
 		} else {
 			offset = self.rng.gen_range(-32768..=32767);
 		}
+		offset
+	}
+
+	pub fn get_smart_jump_offset(&mut self) -> i16 {
+		let offset: i16 = match self.rng.gen_range(0..20) {
+			0..18  => self.calculate_smart_offset(),
+			19..20 => self.get_rand_offset(),
+			_ => unreachable!(),
+        };
+		offset
+	}
+
+	pub fn calculate_smart_offset(&mut self) -> i16 {
+
+		let backwards: i16 = self.instr_count as i16;
+		let forwards: i16 = (self.const_instr_count - self.instr_count) as i16;
+
+		let offset: i16 = match self.rng.gen_range(0..2) {
+			0 => self.rng.gen_range(1..backwards),
+			1 => self.rng.gen_range(1..forwards),
+			_ => unreachable!(),
+		};
+		
 		offset
 	}
 
