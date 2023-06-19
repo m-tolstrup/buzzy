@@ -7,7 +7,7 @@ We will make the project report available when we have defended the thesis.
 
 ## Project Structure
 
-The buzzy project has the following folder structure:
+The Buzzy project has the following folder structure:
 
 - **PREVAIL** (Submodule) (Polynomial-Runtime eBPF Verifier using an Abstract Interpretation Layer)
   - We use the PREVAIL verifier, to verify generated eBPF programs.
