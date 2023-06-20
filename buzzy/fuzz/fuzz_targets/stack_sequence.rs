@@ -53,7 +53,7 @@ fuzz_target!(|data: FuzzSeedData| {
     let str_v_output = String::from_utf8(verify_output.stdout).unwrap();
 
     /***** COLLECT DATA FROM EXPERIMENTS *****/
-
+    /*
     // Remove '\n' for nice result format
     let mut no_new_line = &str_v_output[0..str_v_output.len()-1];
     if no_new_line.starts_with("unmarshaling error") {
@@ -77,7 +77,7 @@ fuzz_target!(|data: FuzzSeedData| {
 
     // Checking if PREVAIL result is untouched - it currently is :)
     // println!("{}", str_v_output);
-    
+    /*
     /************************************************/
     
     // PREVAIL outputs 0 for invalid, and 1 for valid eBPF programs
