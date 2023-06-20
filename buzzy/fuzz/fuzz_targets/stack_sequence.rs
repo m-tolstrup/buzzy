@@ -77,7 +77,7 @@ fuzz_target!(|data: FuzzSeedData| {
 
     // Checking if PREVAIL result is untouched - it currently is :)
     // println!("{}", str_v_output);
-    /*
+    */
     /************************************************/
     
     // PREVAIL outputs 0 for invalid, and 1 for valid eBPF programs
