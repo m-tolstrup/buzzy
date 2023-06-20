@@ -103,12 +103,12 @@ impl EbpfGenerator<'_> {
                 break;
             }
 
-            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..5) {
-                0 => self.sequence_mov_imm_to_reg(),
-                1 => self.sequence_pop_from_stack(),
-                2 => self.sequence_push_to_stack(),
-                3 => self.random_alu_wrapper(),
-                4 => self.random_jump_wrapper(),
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..100) {
+                0..25   => self.sequence_mov_imm_to_reg(),
+                25..50  => self.sequence_pop_from_stack(),
+                50..75  => self.sequence_push_to_stack(),
+                75..98  => self.random_alu_wrapper(),
+                98..100 => self.random_jump_wrapper(),
                 // 5 => self.gen_single_rule_break(),
                 _ => unreachable!(),
             };

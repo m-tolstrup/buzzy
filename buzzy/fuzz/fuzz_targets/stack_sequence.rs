@@ -53,8 +53,6 @@ fuzz_target!(|data: FuzzSeedData| {
     let str_v_output = String::from_utf8(verify_output.stdout).unwrap();
 
     /***** COLLECT DATA FROM EXPERIMENTS *****/
-    
-    println!("{}", str_v_output);
 
     // Remove '\n' for nice result format
     let mut no_new_line = &str_v_output[0..str_v_output.len()-1];
@@ -62,8 +60,10 @@ fuzz_target!(|data: FuzzSeedData| {
         no_new_line = &str_v_output[0..no_new_line.len()-1];
     }
 
+    let generated_instr_count = generator.symbol_table.total_prog_instr_count + 2;
+
     // Append number of instructions to the result of PREVAIL
-    let result = format!("{},{}", no_new_line, generator.symbol_table.total_prog_instr_count);
+    let result = format!("{},{}", no_new_line, generated_instr_count);
 
     let mut exp_file = OpenOptions::new()
         .write(true)

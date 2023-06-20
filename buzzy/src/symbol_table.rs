@@ -95,8 +95,8 @@ impl SymbolTable {
 		// One in ten programs are 32 instructions or less
 		// We (almost) always init zero and push exit, so two are subtracted from the range here
 		let instr_count = match self.rng.gen_range(0..100) {
-			0..90   => self.rng.gen_range(1..33),
-			90..100 => self.rng.gen_range(33..511),
+			0..99   => self.rng.gen_range(1..33),
+			99..100 => self.rng.gen_range(33..511),
 			_       => unreachable!(),
 		};
 
@@ -263,6 +263,8 @@ impl SymbolTable {
 	}
 
 	pub fn get_smart_jump_offset(&mut self) -> i16 {
+		// Be aware that generating jumps in a smart manner greatly increases program state space
+		// Verification times will most likely increase
 		let offset: i16 = match self.rng.gen_range(0..20) {
 			0..19  => self.calculate_smart_offset(),
 			19..20 => self.get_rand_offset(), // Add a chance to generate something fuzzy
@@ -284,11 +286,9 @@ impl SymbolTable {
 	fn generate_smart_backward(&mut self) -> i16 {
 		let backwards: i16 = self.generated_instr_count as i16;
 
-		if backwards == 0 {
+		if backwards <= 1 {
 			return backwards;
 		}
-
-		println!("{} backwards", backwards);
 
 		let offset = self.rng.gen_range(1..backwards);
 
@@ -301,8 +301,6 @@ impl SymbolTable {
 		if forwards <= 1 {
 			return 0;
 		}
-
-		println!("{} forwards", forwards);
 
 		let offset = self.rng.gen_range(1..forwards);
 
