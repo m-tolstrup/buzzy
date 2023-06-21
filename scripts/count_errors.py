@@ -3,6 +3,7 @@ import os
 # This script looks in the buzzy/logs/exp-data.txt file and prints the different errors encounted during unmarshaling in PREVAIL
 
 results = {
+    "total": 0,
     "valid": 0,
     "invalid": 0,
     "unmarshaling": 0,
@@ -17,6 +18,7 @@ def main():
         lines = file.readlines()
 
     for line in lines:
+        results["total"] += 1
         line = line.strip()
         if line.startswith("0"):
             results["invalid"] += 1

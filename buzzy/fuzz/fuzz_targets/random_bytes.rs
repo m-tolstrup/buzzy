@@ -50,19 +50,17 @@ fuzz_target!(|data: FuzzData| {
     let str_v_output = String::from_utf8(verify_output.stdout).unwrap();
 
     /***** COLLECT DATA FROM EXPERIMENTS *****/
-
-    if str_v_output.len() == 0 {
-        return;
-    }
-
+    /*
     // Remove '\n' for nice result format
     let mut no_new_line = &str_v_output[0..str_v_output.len()-1];
     if no_new_line.starts_with("unmarshaling error") {
         no_new_line = &str_v_output[0..no_new_line.len()-1];
     }
 
+    let generated_instr_count = generator.symbol_table.total_prog_instr_count + 2;
+
     // Append number of instructions to the result of PREVAIL
-    let result = format!("{}", no_new_line);
+    let result = format!("{},{}", no_new_line, generated_instr_count);
 
     let mut exp_file = OpenOptions::new()
         .write(true)
@@ -70,13 +68,13 @@ fuzz_target!(|data: FuzzData| {
         .open("logs/exp-data.txt")
         .unwrap();
 
-    if let Err(e) = writeln!(exp_file, "{},{}", result, prog_length) {
+    if let Err(e) = writeln!(exp_file, "{}", result) {
         eprintln!("Couldn't write to file: {}", e);
     }
 
     // Checking if PREVAIL result is untouched - it currently is :)
     // println!("{}", str_v_output);
-
+    */
     /************************************************/
     
     // PREVAIL outputs 0 for invalid, and 1 for valid eBPF programs
