@@ -84,7 +84,8 @@ impl ElfParser {
             //value size = size of map = 8192 (0x20, 0x00)
             //max entry  = 1
             //"map in map" = zeroed
-            obj.define("maps", vec![0x02, 0x00, 0x00, 0x00,
+            obj.define("maps", vec![
+                                    0x02, 0x00, 0x00, 0x00,
                                     0x04, 0x00, 0x00, 0x00,
                                     0x00, 0x20, 0x00, 0x00,
                                     0x01, 0x00, 0x00, 0x00,
