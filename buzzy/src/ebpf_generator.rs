@@ -36,7 +36,7 @@ impl EbpfGenerator<'_> {
         self.symbol_table.gen_instr_count();
 
         match self.strategy {
-            "InitZero" => {
+            "Test" => {
                 self.init_zero();
             },
             "Random" => {
@@ -54,7 +54,7 @@ impl EbpfGenerator<'_> {
                 self.init_map();
                 self.map_footer();
             },
-            "StackSequences" => {
+            "StackSequence" => {
                 self.init_zero();
                 self.gen_stack_sequences();
             },

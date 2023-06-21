@@ -26,16 +26,16 @@ use rbpf::insn_builder::{
     IntoBytes,
 };
 
-pub struct ElfParser<'a> {
+pub struct ElfParser {
     pub generated_prog: BpfCode,
-    strategy: &'a str,
+    maps_included: bool,
 }
 
-impl ElfParser<'_> {
-    pub fn new(_generated_prog: BpfCode, _strategy: &str) -> ElfParser {
+impl ElfParser {
+    pub fn new(_generated_prog: BpfCode, _maps_included: bool) -> ElfParser {
         ElfParser { 
             generated_prog: _generated_prog,
-            strategy: _strategy,
+            maps_included: _maps_included,
         }
     }
 
@@ -63,7 +63,8 @@ impl ElfParser<'_> {
         let mut declarations: Vec<(&'static str, Decl)> = vec![
             (".text", Decl::section(SectionKind::Text).with_loaded(true).into())
         ];
-        if self.strategy == "ScannellMaps" {
+
+        if self.maps_included {
             declarations.append(&mut vec![
                 ("maps", Decl::data().writable().into()),
             ]);
@@ -76,8 +77,8 @@ impl ElfParser<'_> {
 
         // Then define the eBPF program under ".text"
         obj.define(".text", byte_code.to_vec())?;
-
-        if self.strategy == "ScannellMaps"{
+        
+        if self.maps_included {
             //type = 2 = BPF_MAP_TYPE_ARRAY
             //key size   = 4
             //value size = size of map = 8192 (0x20, 0x00)
