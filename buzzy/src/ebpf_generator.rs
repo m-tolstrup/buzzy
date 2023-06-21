@@ -527,7 +527,6 @@ impl EbpfGenerator<'_> {
     }
 
     fn gen_pointer_arithmetic(&mut self) {
-        // This generation technique is pretty stack focused right now
         let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
 
         loop {
