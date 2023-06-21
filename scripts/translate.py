@@ -24,8 +24,6 @@ def main():
 
                 error_path = os.path.join(logs, file)
 
-                print(error_path)
-
                 # Read bytes, but skip 64 header bytes
                 try:
                     elf_bytes = b""

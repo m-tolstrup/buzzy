@@ -33,9 +33,7 @@ impl EbpfGenerator<'_> {
 
     pub fn generate_program(&mut self) {
 
-        // We (almost) always init zero and push exit, so two are subtracted from the range here
-        let instr_count = self.symbol_table.gen_instr_count();
-        self.symbol_table.set_instr_count(instr_count);
+        self.symbol_table.gen_instr_count();
 
         match self.strategy {
             "InitZero" => {
@@ -78,11 +76,9 @@ impl EbpfGenerator<'_> {
     }
 
     fn random_instructions(&mut self) {
-
-        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
         
         loop {
-            if instr_gen_count == 0 {
+            if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
             }
 
@@ -95,38 +91,36 @@ impl EbpfGenerator<'_> {
                 _      => unreachable!(),
             }
 
-            instr_gen_count -= 1;
+            let generated_instr: i32 = self.symbol_table.get_generated_instr_count();
+            self.symbol_table.set_generated_instr_count(generated_instr+1);
         }
     }
 
     fn gen_stack_sequences(&mut self) {
         // This generation technique is pretty stack focused right now
-        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
-
         loop {
-            if instr_gen_count <= 0 {
+            if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
             }
 
-            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..5) {
-                0 => self.sequence_mov_imm_to_reg(),
-                1 => self.sequence_pop_from_stack(),
-                2 => self.sequence_push_to_stack(),
-                3 => self.random_alu_wrapper(),
-                4 => self.random_jump_wrapper(),
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..100) {
+                0..25   => self.sequence_mov_imm_to_reg(),
+                25..50  => self.sequence_pop_from_stack(),
+                50..75  => self.sequence_push_to_stack(),
+                75..98  => self.random_alu_wrapper(),
+                98..100 => self.random_jump_wrapper(),
                 // 5 => self.gen_single_rule_break(),
                 _ => unreachable!(),
             };
 
-            instr_gen_count -= generated_count;
+            let generated_instr: i32 = self.symbol_table.get_generated_instr_count();
+            self.symbol_table.set_generated_instr_count(generated_instr+generated_count);
         }
     }
 
     fn gen_rule_break(&mut self) {
-        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
-
         loop {
-            if instr_gen_count <= 0 {
+            if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
             }
     
@@ -139,7 +133,8 @@ impl EbpfGenerator<'_> {
                 _ => unreachable!(),
             };
     
-            instr_gen_count -= generated_count;
+            let generated_instr: i32 = self.symbol_table.get_generated_instr_count();
+            self.symbol_table.set_generated_instr_count(generated_instr+generated_count);
         }
     }
 
@@ -285,7 +280,7 @@ impl EbpfGenerator<'_> {
         let dst: u8 = self.symbol_table.get_rand_dst_reg();
         let src: u8 = self.symbol_table.get_rand_src_reg();
         let imm: i32 = self.symbol_table.get_rand_imm();
-        let offset: i16 = self.symbol_table.get_rand_offset();
+        let offset: i16 = self.symbol_table.get_smart_jump_offset();
         let condition: Cond = self.symbol_table.get_rand_jump_condition();
         let source: Source = self.symbol_table.get_rand_source();
 
@@ -428,121 +423,8 @@ impl EbpfGenerator<'_> {
 
         1
     }
-    
-    // Maps:
-    fn generate_bounds_jump(&mut self, reg: u8) {
-        // set bounds of registers 
-        let map_size: i32 = 8192;
-        let min_bound = self.symbol_table.rng.gen_range(-map_size..map_size+1);
-        self.prog.jump_conditional(Cond::Greater, Source::Imm).set_dst(reg).set_imm(min_bound).set_off(1).push();
-    }
 
-    fn select_regs_alu_instr(&mut self) {
-        let reg1: u8 = 1;
-        let reg2: u8 = 2;
-
-        // Choose a random (ALU) instruction with the two registers
-        // TODO swap bytes is missing
-        let instruction = match self.symbol_table.rng.gen_range(0..12) {
-            0  => self.prog.add(Source::Reg, Arch::X64),
-            1  => self.prog.sub(Source::Reg, Arch::X64),
-            2  => self.prog.mul(Source::Reg, Arch::X64),
-            3  => self.prog.div(Source::Reg, Arch::X64),
-            4  => self.prog.modulo(Source::Reg, Arch::X64),
-            5  => self.prog.bit_or(Source::Reg, Arch::X64),
-            6  => self.prog.bit_xor(Source::Reg, Arch::X64),
-            7  => self.prog.bit_and(Source::Reg, Arch::X64),
-            8  => self.prog.left_shift(Source::Reg, Arch::X64),
-            9  => self.prog.right_shift(Source::Reg, Arch::X64),
-            10 => self.prog.signed_right_shift(Source::Reg, Arch::X64),
-            11 => self.prog.mov(Source::Reg, Arch::X64),
-            _  => unreachable!(),
-        };
-
-        // Choose which register is the destination register of the operation and which is the source
-        match self.symbol_table.rng.gen_range(1..2+1) {
-            1 => { instruction.set_dst(reg1).set_src(reg2).push()
-            },
-            2 => { instruction.set_dst(reg2).set_src(reg1).push()
-            },
-            _ => unreachable!(),
-        };
-    }
-
-    pub fn random_regs_alu_wrapper(&mut self) -> i32{
-        let max_alu: i32 = self.symbol_table.get_max_alu_instr();
-        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+1);
-        
-        for _ in 1..instr_gen_count {
-            self.select_regs_alu_instr();
-        }
-
-        return instr_gen_count;
-    }
-
-    fn select_random_regs_jump_instr(&mut self) {
-        let mut dst: u8 = 0;
-        let mut src: u8 = 0;
-        // Choose which register is the destination register of the operation and which is the source
-        match self.symbol_table.rng.gen_range(1..2+1) {
-            1 => { dst = 1;
-                   src = 2;
-            },
-            2 => { dst = 2;
-                   src = 1;
-            },
-            _ => unreachable!(),
-        };
-
-        let imm: i32 = self.symbol_table.get_rand_imm();
-        //TODO replace offset with correct instr count
-        let offset: i16 = self.symbol_table.get_rand_offset();
-        let condition: Cond = self.symbol_table.get_rand_jump_condition();
-        let source: Source = self.symbol_table.get_rand_source();
-
-
-        // Weighted to match number of jump instructions
-        let instruction = match self.symbol_table.rng.gen_range(0..12) {
-            0..1  => self.prog.jump_unconditional().set_dst(dst),
-            1..12 => self.prog.jump_conditional(condition, source).set_dst(dst),
-            _     => unreachable!(),
-        };
-
-        match source {
-            Source::Imm => instruction.set_imm(imm).set_off(offset).push(),
-            Source::Reg => instruction.set_src(src).set_off(offset).push(),
-            _           => unreachable!(),
-        };
-    }
-
-    fn random_regs_jump_wrapper(&mut self) -> i32{
-        let max_jump: i32 = self.symbol_table.get_max_jump_instr();
-        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_jump);
-        
-        for _ in 1..=instr_gen_count {
-            self.select_random_regs_jump_instr();
-        }
-
-        return instr_gen_count;
-    }
-
-    fn gen_pointer_arithmetic(&mut self) {
-        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
-
-        loop {
-            if instr_gen_count <= 0 {
-                break;
-            }
-
-            let generated_count: i32 = match self.symbol_table.rng.gen_range(1..2+1) {
-                1 => self.random_regs_alu_wrapper(),
-                2 => self.random_regs_jump_wrapper(),
-                _ => unreachable!(),
-            };
-
-            instr_gen_count -= generated_count;
-        }
-    }
+    /********** MAPS **********/
 
     pub fn init_map(&mut self) {
         // Prepare the stack for "map_lookup_elem"
@@ -579,18 +461,123 @@ impl EbpfGenerator<'_> {
         self.generate_bounds_jump(2);
     }
 
+    fn generate_bounds_jump(&mut self, reg: u8) {
+        // set bounds of registers 
+        let map_size: i32 = 8192;
+        let min_bound = self.symbol_table.rng.gen_range(-map_size..map_size+1);
+        self.prog.jump_conditional(Cond::Greater, Source::Imm).set_dst(reg).set_imm(min_bound).set_off(1).push();
+    }
+
     pub fn map_body(&mut self) {
-        self.gen_pointer_arithmetic()
+        loop {
+            if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
+                break;
+            }
+
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(1..2+1) {
+                1 => self.random_regs_alu_wrapper(),
+                2 => self.random_regs_jump_wrapper(),
+                _ => unreachable!(),
+            };
+
+            let current: i32 = self.symbol_table.get_generated_instr_count();
+            self.symbol_table.set_generated_instr_count(current+generated_count);
+        }
+    }
+
+    pub fn random_regs_alu_wrapper(&mut self) -> i32{
+        let max_alu: i32 = self.symbol_table.get_max_alu_instr();
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+1);
+        
+        for _ in 1..instr_gen_count {
+            self.select_regs_alu_instr();
+        }
+
+        return instr_gen_count;
+    }
+
+    fn random_regs_jump_wrapper(&mut self) -> i32{
+        let max_jump: i32 = self.symbol_table.get_max_jump_instr();
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_jump);
+        
+        for _ in 1..=instr_gen_count {
+            self.select_random_regs_jump_instr();
+        }
+
+        return instr_gen_count;
+    }
+
+    fn select_regs_alu_instr(&mut self) {
+        let reg1: u8 = 1;
+        let reg2: u8 = 2;
+
+        // Choose a random (ALU) instruction with the two registers
+        // TODO swap bytes is missing
+        let instruction = match self.symbol_table.rng.gen_range(0..12) {
+            0  => self.prog.add(Source::Reg, Arch::X64),
+            1  => self.prog.sub(Source::Reg, Arch::X64),
+            2  => self.prog.mul(Source::Reg, Arch::X64),
+            3  => self.prog.div(Source::Reg, Arch::X64),
+            4  => self.prog.modulo(Source::Reg, Arch::X64),
+            5  => self.prog.bit_or(Source::Reg, Arch::X64),
+            6  => self.prog.bit_xor(Source::Reg, Arch::X64),
+            7  => self.prog.bit_and(Source::Reg, Arch::X64),
+            8  => self.prog.left_shift(Source::Reg, Arch::X64),
+            9  => self.prog.right_shift(Source::Reg, Arch::X64),
+            10 => self.prog.signed_right_shift(Source::Reg, Arch::X64),
+            11 => self.prog.mov(Source::Reg, Arch::X64),
+            _  => unreachable!(),
+        };
+
+        // Choose which register is the destination register of the operation and which is the source
+        match self.symbol_table.rng.gen_range(0..2) {
+            0 => instruction.set_dst(reg1).set_src(reg2).push(),
+            1 => instruction.set_dst(reg2).set_src(reg1).push(),
+            _ => unreachable!(),
+        };
+    }
+
+    fn select_random_regs_jump_instr(&mut self) {
+        let mut dst: u8 = 0;
+        let mut src: u8 = 0;
+        // Choose which register is the destination register of the operation and which is the source
+        match self.symbol_table.rng.gen_range(0..2) {
+            0 => { dst = 1; src = 2; },
+            1 => { dst = 2; src = 1; },
+            _ => unreachable!(),
+        };
+
+        let imm: i32 = self.symbol_table.get_rand_imm();
+        let offset: i16 = self.symbol_table.get_smart_jump_offset();
+        let condition: Cond = self.symbol_table.get_rand_jump_condition();
+        let source: Source = self.symbol_table.get_rand_source();
+
+        // Weighted to match number of jump instructions
+        let instruction = match self.symbol_table.rng.gen_range(0..12) {
+            0..1  => self.prog.jump_unconditional().set_dst(dst),
+            1..12 => self.prog.jump_conditional(condition, source).set_dst(dst),
+            _     => unreachable!(),
+        };
+
+        match source {
+            Source::Imm => instruction.set_imm(imm).set_off(offset).push(),
+            Source::Reg => instruction.set_src(src).set_off(offset).push(),
+            _           => unreachable!(),
+        };
     }
 
     pub fn map_footer(&mut self) {
-        // add or sub operation(s) using register 1 or 2, to ensure pointer arithmetic
         // init arbitrary register
         self.prog.mov(Source::Imm, Arch::X64).set_dst(4).set_imm(0).push();
         
-        // TODO select 50/50 
-        //self.prog.add(Source::Reg, Arch::X64).set_dst(4).set_src(1).push();
-        self.prog.add(Source::Reg, Arch::X64).set_dst(4).set_src(2).push();
+        // add or sub operation(s) using register 1 or 2, to ensure pointer arithmetic
+        match self.symbol_table.rng.gen_range(0..4) {
+            0 => self.prog.add(Source::Reg, Arch::X64).set_dst(4).set_src(1).push(),
+            1 => self.prog.add(Source::Reg, Arch::X64).set_dst(4).set_src(2).push(),
+            2 => self.prog.sub(Source::Reg, Arch::X64).set_dst(4).set_src(1).push(),
+            3 => self.prog.sub(Source::Reg, Arch::X64).set_dst(4).set_src(2).push(),
+            _ => unreachable!(),
+        };
 
         // use pointer for store operation, to ensure mem access to map (dst = reg 0)
         self.prog.store_x(MemSize::Word).set_dst(0).set_src(4).push();
@@ -598,5 +585,4 @@ impl EbpfGenerator<'_> {
         // r0 = 1 to ensure valid return value
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(1).push();
     }
-
 }

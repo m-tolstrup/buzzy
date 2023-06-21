@@ -11,8 +11,8 @@ pub struct SymbolTable {
 	pub rng: ThreadRng,
 	seed: u32,
 	
-	pub const_instr_count: i32,
-	instr_count: i32,
+	pub total_prog_instr_count: i32,
+	generated_instr_count: i32,
 	max_alu: i32,
 	max_jump: i32,
 	max_load: i32,
@@ -37,8 +37,8 @@ impl SymbolTable {
 			seed: _seed,
 
 			// Set when gen_instr_count is called
-			instr_count: 0,
-			const_instr_count: 0,
+			total_prog_instr_count: 0,
+			generated_instr_count: 0,
 
 			// ***** VARIABLES MANUALLY SET FOR EXPERIMENTS - AFFECTING RANDOM CHOICES, ETC ***** //
 
@@ -83,22 +83,25 @@ impl SymbolTable {
 		}
 	}
 
-	pub fn get_instr_count(&mut self) -> i32 {
-		self.instr_count
+	pub fn get_generated_instr_count(&mut self) -> i32 {
+		self.generated_instr_count
 	}
 
-	pub fn set_instr_count(&mut self, i:i32) {
-		self.instr_count = i;
+	pub fn set_generated_instr_count(&mut self, i:i32) {
+		self.generated_instr_count = i;
 	}
 
 	pub fn gen_instr_count(&mut self) -> i32 {
 		// One in ten programs are 32 instructions or less
+		// We (almost) always init zero and push exit, so two are subtracted from the range here
 		let instr_count = match self.rng.gen_range(0..100) {
-			0..90   => self.rng.gen_range(1..65),
-			90..100 => self.rng.gen_range(65..511),
+			0..99   => self.rng.gen_range(1..33),
+			99..100 => self.rng.gen_range(33..511),
 			_       => unreachable!(),
 		};
-		self.const_instr_count = instr_count;
+
+		self.total_prog_instr_count = instr_count;
+
 		instr_count
 	}
 
@@ -256,6 +259,51 @@ impl SymbolTable {
 		} else {
 			offset = self.rng.gen_range(-32768..=32767);
 		}
+		offset
+	}
+
+	pub fn get_smart_jump_offset(&mut self) -> i16 {
+		// Be aware that generating jumps in a smart manner greatly increases program state space
+		// Verification times will most likely increase
+		let offset: i16 = match self.rng.gen_range(0..20) {
+			0..19  => self.calculate_smart_offset(),
+			19..20 => self.get_rand_offset(), // Add a chance to generate something fuzzy
+			_      => unreachable!(),
+        };
+		offset
+	}
+
+	fn calculate_smart_offset(&mut self) -> i16 {
+		let offset: i16 = match self.rng.gen_range(0..2) {
+			0 => self.generate_smart_backward(),
+			1 => self.generate_smart_forward(),
+			_ => unreachable!(),
+		};
+
+		offset
+	}
+
+	fn generate_smart_backward(&mut self) -> i16 {
+		let backwards: i16 = self.generated_instr_count as i16;
+
+		if backwards <= 1 {
+			return backwards;
+		}
+
+		let offset = self.rng.gen_range(1..backwards);
+
+		0 - offset // return negative jump offset since backwards
+	}
+
+	fn generate_smart_forward(&mut self) -> i16 {
+		let forwards: i16 = (self.total_prog_instr_count - self.generated_instr_count) as i16;
+
+		if forwards <= 1 {
+			return 0;
+		}
+
+		let offset = self.rng.gen_range(1..forwards);
+
 		offset
 	}
 
