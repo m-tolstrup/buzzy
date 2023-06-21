@@ -78,8 +78,8 @@ impl ElfParser<'_> {
         obj.define(".text", byte_code.to_vec())?;
 
         if self.strategy == "ScannellMaps"{
-            //type = BPF_MAP_TYPE_ARRAY = 2
-            //key size   = 4 (8?)
+            //type = 2 = BPF_MAP_TYPE_ARRAY
+            //key size   = 4
             //value size = size of map = 8192 (0x20, 0x00)
             //max entry  = 1
             //"map in map" = zeroed

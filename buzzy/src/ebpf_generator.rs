@@ -552,9 +552,10 @@ impl EbpfGenerator<'_> {
         self.prog.mov(Source::Reg, Arch::X64).set_dst(2).set_src(10).push();
         self.prog.add(Source::Imm, Arch::X64).set_dst(2).set_imm(-4).push();
 
-        // load map through r1 = map_fd context, src = pseudo fd(1), imm = addr/replaced
-        // eBPF in ELF file, context is set as maps section
+        // load map through r1 = map_fd context.
+        // When eBPF in ELF file, context is set as maps section
         // uBPF asserts src = 0 (no pseudo support or imm=addr/pseudo)
+        // src = pseudo fd(1), imm = addr/replaced with ctx
         self.prog.load(MemSize::DoubleWord).set_dst(1).set_src(0).set_imm(1).push();
         self.prog.load(MemSize::Word).set_dst(0).set_imm(0).push();
 
