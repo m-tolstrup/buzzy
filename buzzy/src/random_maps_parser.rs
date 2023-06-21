@@ -78,11 +78,8 @@ impl RandomMapsParser<'_> {
 
         // Then define the eBPF program under ".text"
         obj.define(".text", byte_code.to_vec())?;
-
         
-        // 4 +- 2 random u8
-        // completely random
-        // random first byte
+        // TODO: 4 +- 2 random u8
         let maps = self.maps;
 
         let mut random_map: Vec<u8> = vec![];

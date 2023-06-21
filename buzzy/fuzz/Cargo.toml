@@ -42,8 +42,8 @@ test = false
 doc = false
 
 [[bin]]
-name = "map_header"
-path = "fuzz_targets/map_header.rs"
+name = "scannell_maps"
+path = "fuzz_targets/scannell_maps.rs"
 test = false
 doc = false
 

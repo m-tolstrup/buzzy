@@ -31,11 +31,7 @@ All submodules were installed/compiled by following the README.md provided by th
 The PREVAIL and uBPF submodules have some required dependencies.
 
 - Pull code for the eBPF fuzzer and its submodules
-  - `git clone --recurse-submodules https://github.com/m-tolstrup/buzzy/`
-  - `git submodule update --remote rbpf`
-  - `git submodule update --remote buzzy/faerie`
-  - `git submodule update --remote ubpf`
-  - `git submodule update --remote ebpf-verifier`
+  - `git clone --recurse-submodules --remote-submodules https://github.com/m-tolstrup/buzzy/`
 - Build the [PREVAIL verifier](https://github.com/vbpf/ebpf-verifier) submodule
   - `cmake -B build -DCMAKE_BUILD_TYPE=Release`
   - `cmake --build build`
@@ -51,15 +47,15 @@ The PREVAIL and uBPF submodules have some required dependencies.
 ## Trophies
 Buzzy has found the following (confirmed) bugs:
 
-- [Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/vbpf/ebpf-verifier/issues/484)
-- [Segmentation fault (core dumped) - Null value in modulo operations](https://github.com/vbpf/ebpf-verifier/issues/493)
+- [PREVAIL: Inconsistency in load instruction handling between PREVAIL and uBPF](https://github.com/vbpf/ebpf-verifier/issues/484)
+- [PREVAIL: Segmentation fault - Null value in modulo operations](https://github.com/vbpf/ebpf-verifier/issues/493)
 
 ## Future Work
 
 We see the following areas as next the additions or changes for buzzy:
 
 - **Move away from cargo-fuzz**: cargo-fuzz only ended up being used for what is essentially a looping mechanism. Implementing a version of this that would better suit buzzy would be greatly beneficial for the project.
-- **Guided fuzzing**: Extending above, this setup could allow for better guided fuzzing.
+- **Guided fuzzing**: Further extending the above point, this setup could allow for better guided fuzzing.
 - **Extended fault detection**: For the PREVAIL/uBPF setup, Buzzy only observed conformance issues between the targets. No run time behavior or similar is captured.
 - **Bug taming**: Some bugs are generated often. Mechanisms to handle this would be useful.
 - **More strategies**: We think that strategies revolving around program type and context is the next step for strategies.
