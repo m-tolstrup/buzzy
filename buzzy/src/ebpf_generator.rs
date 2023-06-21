@@ -33,9 +33,7 @@ impl EbpfGenerator<'_> {
 
     pub fn generate_program(&mut self) {
 
-        // We (almost) always init zero and push exit, so two are subtracted from the range here
-        let instr_count = self.symbol_table.gen_instr_count();
-        self.symbol_table.set_instr_count(instr_count);
+        self.symbol_table.gen_instr_count();
 
         match self.strategy {
             "InitZero" => {
@@ -78,11 +76,9 @@ impl EbpfGenerator<'_> {
     }
 
     fn random_instructions(&mut self) {
-
-        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
         
         loop {
-            if instr_gen_count == 0 {
+            if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
             }
 
@@ -95,38 +91,36 @@ impl EbpfGenerator<'_> {
                 _      => unreachable!(),
             }
 
-            instr_gen_count -= 1;
+            let generated_instr: i32 = self.symbol_table.get_generated_instr_count();
+            self.symbol_table.set_generated_instr_count(generated_instr+1);
         }
     }
 
     fn gen_stack_sequences(&mut self) {
         // This generation technique is pretty stack focused right now
-        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
-
         loop {
-            if instr_gen_count <= 0 {
+            if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
             }
 
-            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..5) {
-                0 => self.sequence_mov_imm_to_reg(),
-                1 => self.sequence_pop_from_stack(),
-                2 => self.sequence_push_to_stack(),
-                3 => self.random_alu_wrapper(),
-                4 => self.random_jump_wrapper(),
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..100) {
+                0..25   => self.sequence_mov_imm_to_reg(),
+                25..50  => self.sequence_pop_from_stack(),
+                50..75  => self.sequence_push_to_stack(),
+                75..98  => self.random_alu_wrapper(),
+                98..100 => self.random_jump_wrapper(),
                 // 5 => self.gen_single_rule_break(),
                 _ => unreachable!(),
             };
 
-            instr_gen_count -= generated_count;
+            let generated_instr: i32 = self.symbol_table.get_generated_instr_count();
+            self.symbol_table.set_generated_instr_count(generated_instr+generated_count);
         }
     }
 
     fn gen_rule_break(&mut self) {
-        let mut instr_gen_count: i32 = self.symbol_table.get_instr_count();
-
         loop {
-            if instr_gen_count <= 0 {
+            if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
             }
     
@@ -139,7 +133,8 @@ impl EbpfGenerator<'_> {
                 _ => unreachable!(),
             };
     
-            instr_gen_count -= generated_count;
+            let generated_instr: i32 = self.symbol_table.get_generated_instr_count();
+            self.symbol_table.set_generated_instr_count(generated_instr+generated_count);
         }
     }
 
@@ -285,7 +280,7 @@ impl EbpfGenerator<'_> {
         let dst: u8 = self.symbol_table.get_rand_dst_reg();
         let src: u8 = self.symbol_table.get_rand_src_reg();
         let imm: i32 = self.symbol_table.get_rand_imm();
-        let offset: i16 = self.symbol_table.get_rand_offset();
+        let offset: i16 = self.symbol_table.get_smart_jump_offset();
         let condition: Cond = self.symbol_table.get_rand_jump_condition();
         let source: Source = self.symbol_table.get_rand_source();
 
