@@ -63,7 +63,7 @@ impl ElfParser<'_> {
         let mut declarations: Vec<(&'static str, Decl)> = vec![
             (".text", Decl::section(SectionKind::Text).with_loaded(true).into())
         ];
-        if self.strategy == "MapHeader" {
+        if self.strategy == "ScannellMaps" {
             declarations.append(&mut vec![
                 ("maps", Decl::data().writable().into()),
             ]);
@@ -77,9 +77,9 @@ impl ElfParser<'_> {
         // Then define the eBPF program under ".text"
         obj.define(".text", byte_code.to_vec())?;
 
-        if self.strategy == "MapHeader"{
-            //type = BPF_MAP_TYPE_ARRAY = 2
-            //key size   = 4 (8?)
+        if self.strategy == "ScannellMaps"{
+            //type = 2 = BPF_MAP_TYPE_ARRAY
+            //key size   = 4
             //value size = size of map = 8192 (0x20, 0x00)
             //max entry  = 1
             //"map in map" = zeroed
@@ -87,7 +87,7 @@ impl ElfParser<'_> {
                                     0x04, 0x00, 0x00, 0x00,
                                     0x00, 0x20, 0x00, 0x00,
                                     0x01, 0x00, 0x00, 0x00,
-                                    0x00, 0x00, 0x00, 0x00,
+                                    //0x00, 0x00, 0x00, 0x00,
                                     //0x00, 0x00, 0x00, 0x00,
                                     //0x00, 0x00, 0x00, 0x00
                                     ])?;
