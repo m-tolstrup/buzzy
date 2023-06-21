@@ -28,17 +28,15 @@ use rbpf::insn_builder::{
 
 use crate::common::Map;
 
-pub struct RandomMapsParser<'a> {
+pub struct RandomMapsParser {
     pub generated_prog: BpfCode,
-    strategy: &'a str,
     maps: Vec<Map>,
 }
 
-impl RandomMapsParser<'_> {
-    pub fn new(_generated_prog: BpfCode, _strategy: &str, _maps: Vec<Map>) -> RandomMapsParser {
+impl RandomMapsParser {
+    pub fn new(_generated_prog: BpfCode, _maps: Vec<Map>) -> RandomMapsParser {
         RandomMapsParser { 
             generated_prog: _generated_prog,
-            strategy: _strategy,
             maps: _maps,
         }
     }
@@ -65,10 +63,10 @@ impl RandomMapsParser<'_> {
 
         // PREVAIL looks for ".text" section and "maps" section relocations
         let mut declarations: Vec<(&'static str, Decl)> = vec![
-            (".text", Decl::section(SectionKind::Text).with_loaded(true).into())
-        ];
-        declarations.append(&mut vec![
-            ("maps", Decl::data().writable().into()),
+                (".text", Decl::section(SectionKind::Text).with_loaded(true).into())
+            ];
+            declarations.append(&mut vec![
+                ("maps", Decl::data().writable().into()),
         ]);
 
         obj.declarations(declarations.into_iter())?;
@@ -90,7 +88,7 @@ impl RandomMapsParser<'_> {
             }
         }
 
-        obj.define("maps", random_map);
+        obj.define("maps", random_map)?;
 
         obj.link_with(
             Link { from: ".text", to: "maps", at: (4*8) },

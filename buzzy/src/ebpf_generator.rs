@@ -538,8 +538,10 @@ impl EbpfGenerator<'_> {
     }
 
     fn select_random_regs_jump_instr(&mut self) {
-        let mut dst: u8 = 0;
-        let mut src: u8 = 0;
+        
+        let dst: u8;
+        let src: u8;
+
         // Choose which register is the destination register of the operation and which is the source
         match self.symbol_table.rng.gen_range(0..2) {
             0 => { dst = 1; src = 2; },

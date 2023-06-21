@@ -16,7 +16,12 @@ extern crate buzzy;
 use crate::buzzy::ebpf_generator::EbpfGenerator;
 use crate::buzzy::elf_parser::ElfParser;
 
-fuzz_target!({
+#[derive(arbitrary::Arbitrary, Debug)]
+struct FuzzData { // Would remove this, but has to be here
+    pub seed: u8,
+}
+
+fuzz_target!(|_data: FuzzData|{
     // Strategy and other settings
     let strategy = "ScannellMaps";
     let maps_included = true;
