@@ -23,10 +23,10 @@ pub struct EbpfGenerator<'a> {
 }
 
 impl EbpfGenerator<'_> {
-    pub fn new(_seed: u32, _strategy: &str) -> EbpfGenerator {
+    pub fn new(_strategy: &str) -> EbpfGenerator {
         EbpfGenerator { 
             prog: BpfCode::new(),
-            symbol_table: SymbolTable::new(_seed),
+            symbol_table: SymbolTable::new(),
             strategy: _strategy,
         }
     }
@@ -36,7 +36,7 @@ impl EbpfGenerator<'_> {
         self.symbol_table.gen_instr_count();
 
         match self.strategy {
-            "InitZero" => {
+            "Test" => {
                 self.init_zero();
             },
             "Random" => {
@@ -54,7 +54,7 @@ impl EbpfGenerator<'_> {
                 self.init_map();
                 self.map_footer();
             },
-            "StackSequences" => {
+            "StackSequence" => {
                 self.init_zero();
                 self.gen_stack_sequences();
             },
@@ -538,8 +538,10 @@ impl EbpfGenerator<'_> {
     }
 
     fn select_random_regs_jump_instr(&mut self) {
-        let mut dst: u8 = 0;
-        let mut src: u8 = 0;
+        
+        let dst: u8;
+        let src: u8;
+
         // Choose which register is the destination register of the operation and which is the source
         match self.symbol_table.rng.gen_range(0..2) {
             0 => { dst = 1; src = 2; },

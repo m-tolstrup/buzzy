@@ -57,7 +57,7 @@ impl RandomBytesParser {
                       .finish();
 
         // PREVAIL looks for ".text" section and "maps" section relocations
-        let mut declarations: Vec<(&'static str, Decl)> = vec![
+        let declarations: Vec<(&'static str, Decl)> = vec![
             (".text", Decl::section(SectionKind::Text).with_loaded(true).into())
         ];
 

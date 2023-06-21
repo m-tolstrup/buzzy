@@ -9,7 +9,6 @@ use rbpf::insn_builder::{
 
 pub struct SymbolTable {
 	pub rng: ThreadRng,
-	seed: u32,
 	
 	pub total_prog_instr_count: i32,
 	generated_instr_count: i32,
@@ -30,11 +29,10 @@ pub struct SymbolTable {
 }
 
 impl SymbolTable {
-	pub fn new(_seed: u32) -> SymbolTable {
+	pub fn new() -> SymbolTable {
 		SymbolTable {
 			rng: rand::thread_rng(),
-			// ***** VARIABLES FOR RANDOM CHOICES BASED ON SEED ***** //
-			seed: _seed,
+			// ***** VARIABLES FOR RANDOM CHOICES ***** //
 
 			// Set when gen_instr_count is called
 			total_prog_instr_count: 0,

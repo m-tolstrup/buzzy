@@ -19,20 +19,22 @@ use crate::buzzy::common::Map;
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct FuzzSeedData {
-    seed: u32,
     maps: Vec<Map>,
 }
 
 fuzz_target!(|data: FuzzSeedData| {
-    // Generate a program - fuzzed structure provides randomness
+    // Strategy and other settings
     let strategy = "RandomMaps";
-    let mut generator = EbpfGenerator::new(data.seed, strategy);
-    generator.generate_program();
-    let generated_program = generator.prog;
+    let maps_included = true;
     let verbose = false;
 
+    // Generate eBPF program
+    let mut generator = EbpfGenerator::new(strategy);
+    generator.generate_program();
+    let generated_program = generator.prog;
+
     // Pass it to the parser and parse it
-    let parser = RandomMapsParser::new(generated_program, strategy, data.maps);
+    let parser = RandomMapsParser::new(generated_program, data.maps);
     let _parser_result = match parser.parse_prog() {
         Ok(_) => {
             // Do nothing, everything went Ok

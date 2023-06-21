@@ -17,20 +17,23 @@ use crate::buzzy::ebpf_generator::EbpfGenerator;
 use crate::buzzy::elf_parser::ElfParser;
 
 #[derive(arbitrary::Arbitrary, Debug)]
-struct FuzzSeedData {
-    seed: u32,
+struct FuzzData { // Would remove this, but has to be here
+    pub seed: u8,
 }
 
-fuzz_target!(|data: FuzzSeedData| {
-    // Generate a program - fuzzed structure provides randomness
-    let strategy = "StackSequences";
-    let mut generator = EbpfGenerator::new(data.seed, strategy);
-    generator.generate_program();
-    let generated_program = generator.prog;
+fuzz_target!(|_data: FuzzData|{
+    // Strategy and other settings
+    let strategy = "StackSequence";
+    let maps_included = false;
     let verbose = false;
 
+    // Generate eBPF program
+    let mut generator = EbpfGenerator::new(strategy);
+    generator.generate_program();
+    let generated_program = generator.prog;
+
     // Pass it to the parser and parse it
-    let parser = ElfParser::new(generated_program, strategy);
+    let parser = ElfParser::new(generated_program, maps_included);
     let _parser_result = match parser.parse_prog() {
         Ok(_) => {
             // Do nothing, everything went Ok
