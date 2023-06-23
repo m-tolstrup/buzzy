@@ -93,8 +93,8 @@ impl SymbolTable {
 		// One in ten programs are 32 instructions or less
 		// We (almost) always init zero and push exit, so two are subtracted from the range here
 		let instr_count = match self.rng.gen_range(0..100) {
-			0..99   => self.rng.gen_range(1..33),
-			99..100 => self.rng.gen_range(33..511),
+			0..100   => self.rng.gen_range(1..480),
+			// 99..100 => self.rng.gen_range(33..511),
 			_       => unreachable!(),
 		};
 
@@ -272,9 +272,9 @@ impl SymbolTable {
 	}
 
 	fn calculate_smart_offset(&mut self) -> i16 {
-		let offset: i16 = match self.rng.gen_range(0..2) {
-			0 => self.generate_smart_backward(),
-			1 => self.generate_smart_forward(),
+		let offset: i16 = match self.rng.gen_range(0..10) {
+			0..1  => self.generate_smart_backward(),
+			1..10 => self.generate_smart_forward(),
 			_ => unreachable!(),
 		};
 

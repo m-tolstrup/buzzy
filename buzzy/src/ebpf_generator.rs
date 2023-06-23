@@ -474,9 +474,9 @@ impl EbpfGenerator<'_> {
                 break;
             }
 
-            let generated_count: i32 = match self.symbol_table.rng.gen_range(1..2+1) {
-                1 => self.random_regs_alu_wrapper(),
-                2 => self.random_regs_jump_wrapper(),
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..10) {
+                0..8  => self.random_regs_alu_wrapper(),
+                9..10 => self.random_regs_jump_wrapper(),
                 _ => unreachable!(),
             };
 
