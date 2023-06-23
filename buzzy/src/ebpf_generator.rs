@@ -468,7 +468,7 @@ impl EbpfGenerator<'_> {
         self.prog.jump_conditional(Cond::Greater, Source::Imm).set_dst(reg).set_imm(min_bound).set_off(1).push();
     }
 
-    pub fn map_body(&mut self) {
+    fn map_body(&mut self) {
         loop {
             if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
@@ -485,7 +485,7 @@ impl EbpfGenerator<'_> {
         }
     }
 
-    pub fn random_regs_alu_wrapper(&mut self) -> i32{
+    fn random_regs_alu_wrapper(&mut self) -> i32{
         let max_alu: i32 = self.symbol_table.get_max_alu_instr();
         let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+1);
         
@@ -568,7 +568,7 @@ impl EbpfGenerator<'_> {
         };
     }
 
-    pub fn map_footer(&mut self) {
+    fn map_footer(&mut self) {
         // init arbitrary register
         self.prog.mov(Source::Imm, Arch::X64).set_dst(4).set_imm(0).push();
         

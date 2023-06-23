@@ -4,7 +4,7 @@
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::process::Command;
-use std::io::{self, Write, prelude::*};
+use std::io::{self, Write};
 
 use chrono::{Utc, DateTime};
 

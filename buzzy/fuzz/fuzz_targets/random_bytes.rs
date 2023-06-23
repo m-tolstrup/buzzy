@@ -4,7 +4,7 @@
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::process::Command;
-use std::io::{self, Write, prelude::*};
+use std::io::{self, Write};
 
 use chrono::{Utc, DateTime};
 
@@ -12,9 +12,9 @@ use arbitrary;
 use libfuzzer_sys::fuzz_target;
 
 extern crate buzzy;
+
 use crate::buzzy::random_bytes_parser::RandomBytesParser;
 use crate::buzzy::common::Instruction;
-
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct FuzzData {
