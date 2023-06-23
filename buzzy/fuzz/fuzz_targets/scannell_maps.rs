@@ -2,7 +2,7 @@
 #![allow(unused_imports)]
 
 use std::fs;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::process::Command;
 use std::io::{self, Write};
 
