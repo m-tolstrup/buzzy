@@ -12,8 +12,9 @@ def main():
     for file in os.listdir(errors):
         if file.startswith("error") and file.endswith(".o"):
             error_path = os.path.join(errors, file)
-            cmd_str = "./test " + str(error_path)
+            cmd_str = "./test -j " + str(error_path)
             result = subprocess.run(cmd_str, shell=True)
+            print(str(file)+"\n")
             # if result not in error_dict:
                 # error_dict[result] = str(file)
 
