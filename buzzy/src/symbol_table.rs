@@ -94,7 +94,7 @@ impl SymbolTable {
 		// We (almost) always init zero and push exit, so two are subtracted from the range here
 		let instr_count = match self.rng.gen_range(0..100) {
 			0..100   => self.rng.gen_range(1..480),
-			// 99..100 => self.rng.gen_range(33..511),
+			//99..100 => self.rng.gen_range(33..511),
 			_       => unreachable!(),
 		};
 
