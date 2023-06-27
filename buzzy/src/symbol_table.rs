@@ -63,7 +63,7 @@ impl SymbolTable {
 
 			// If false, other register can be used to access the stack
 			// Based on "select_random_registers"
-			select_correct_stack_pointer: false,
+			select_correct_stack_pointer: true,
 
 			// ***** VARIABLES TO TRACK PROGRAM ***** //
 
