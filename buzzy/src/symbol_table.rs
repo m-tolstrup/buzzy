@@ -63,7 +63,7 @@ impl SymbolTable {
 
 			// If false, other register can be used to access the stack
 			// Based on "select_random_registers"
-			select_correct_stack_pointer: true,
+			select_correct_stack_pointer: false,
 
 			// ***** VARIABLES TO TRACK PROGRAM ***** //
 
@@ -93,8 +93,8 @@ impl SymbolTable {
 		// One in ten programs are 32 instructions or less
 		// We (almost) always init zero and push exit, so two are subtracted from the range here
 		let instr_count = match self.rng.gen_range(0..100) {
-			0..100   => self.rng.gen_range(1..480),
-			//99..100 => self.rng.gen_range(33..511),
+			0..90   => self.rng.gen_range(1..33),
+			90..100 => self.rng.gen_range(33..511),
 			_       => unreachable!(),
 		};
 

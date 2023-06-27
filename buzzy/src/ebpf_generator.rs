@@ -57,6 +57,7 @@ impl EbpfGenerator<'_> {
             "StackSequence" => {
                 self.init_zero();
                 self.gen_stack_sequences();
+                self.init_zero();
             },
             "RuleBreak" => {
                 self.init_zero();
@@ -494,22 +495,22 @@ impl EbpfGenerator<'_> {
         self.random_regs_alu_wrapper();
     }
 
-    fn random_regs_alu_wrapper(&mut self) -> i32{
+    fn random_regs_alu_wrapper(&mut self) -> i32 {
         let max_alu: i32 = self.symbol_table.get_max_alu_instr();
         let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+1);
         
-        for _ in 1..instr_gen_count {
+        for _ in 1..instr_gen_count+1 {
             self.select_regs_alu_instr();
         }
 
         return instr_gen_count;
     }
 
-    fn random_regs_jump_wrapper(&mut self) -> i32{
+    fn random_regs_jump_wrapper(&mut self) -> i32 {
         let max_jump: i32 = self.symbol_table.get_max_jump_instr();
-        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_jump);
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_jump+1);
         
-        for _ in 1..=instr_gen_count {
+        for _ in 1..instr_gen_count+1 {
             self.select_random_regs_jump_instr();
         }
 
