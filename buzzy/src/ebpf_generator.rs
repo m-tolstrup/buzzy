@@ -57,6 +57,7 @@ impl EbpfGenerator<'_> {
             "StackSequence" => {
                 self.init_zero();
                 self.gen_stack_sequences();
+                self.init_zero();
             },
             "RuleBreak" => {
                 self.init_zero();
@@ -452,9 +453,11 @@ impl EbpfGenerator<'_> {
         // Initialize two (reset) registers 1 and 2, by reading from map = r0 = map(r1, r2) or with imm 
         //self.prog.load_x(MemSize::DoubleWord).set_dst(1).set_src(0).set_off(0).push();
         //self.prog.load_x(MemSize::DoubleWord).set_dst(2).set_src(0).set_off(8).push();
-        let imm: i32 = self.symbol_table.get_rand_imm();
-        self.prog.mov(Source::Imm, Arch::X64).set_dst(1).set_imm(imm).push();
-        self.prog.mov(Source::Imm, Arch::X64).set_dst(2).set_imm(imm).push();
+        let imm1: i32 = self.symbol_table.get_rand_imm();
+        let imm2: i32 = self.symbol_table.get_rand_imm();
+
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(1).set_imm(imm1).push();
+        self.prog.mov(Source::Imm, Arch::X64).set_dst(2).set_imm(imm2).push();
 
         // generate bounds for new registers 1 and 2, that can be used for operations
         self.generate_bounds_jump(1);
@@ -464,43 +467,50 @@ impl EbpfGenerator<'_> {
     fn generate_bounds_jump(&mut self, reg: u8) {
         // set bounds of registers 
         let map_size: i32 = 8192;
-        let min_bound = self.symbol_table.rng.gen_range(-map_size..map_size+1);
+        let min_bound = self.symbol_table.rng.gen_range(-map_size..=map_size);
         self.prog.jump_conditional(Cond::Greater, Source::Imm).set_dst(reg).set_imm(min_bound).set_off(1).push();
     }
 
     fn map_body(&mut self) {
+        
+        // ALU operation such that jumps don't jump into header
+        self.random_regs_alu_wrapper();
+
         loop {
             if self.symbol_table.get_generated_instr_count() >= self.symbol_table.total_prog_instr_count {
                 break;
             }
 
-            let generated_count: i32 = match self.symbol_table.rng.gen_range(1..2+1) {
-                1 => self.random_regs_alu_wrapper(),
-                2 => self.random_regs_jump_wrapper(),
+            let generated_count: i32 = match self.symbol_table.rng.gen_range(0..10) {
+                0..9  => self.random_regs_alu_wrapper(),
+                9..10 => self.random_regs_jump_wrapper(),
                 _ => unreachable!(),
             };
 
             let current: i32 = self.symbol_table.get_generated_instr_count();
             self.symbol_table.set_generated_instr_count(current+generated_count);
         }
+
+        // ALU operation such that jumps don't jump into footer
+        self.random_regs_alu_wrapper();
     }
 
-    fn random_regs_alu_wrapper(&mut self) -> i32{
+    fn random_regs_alu_wrapper(&mut self) -> i32 {
         let max_alu: i32 = self.symbol_table.get_max_alu_instr();
         let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_alu+1);
         
-        for _ in 1..instr_gen_count {
+        for _ in 1..instr_gen_count+1 {
             self.select_regs_alu_instr();
         }
 
         return instr_gen_count;
     }
 
-    fn random_regs_jump_wrapper(&mut self) -> i32{
+    fn random_regs_jump_wrapper(&mut self) -> i32 {
         let max_jump: i32 = self.symbol_table.get_max_jump_instr();
-        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..=max_jump);
+        let instr_gen_count: i32 = self.symbol_table.rng.gen_range(1..max_jump+1);
         
-        for _ in 1..=instr_gen_count {
+        for _ in 1..instr_gen_count+1 {
             self.select_random_regs_jump_instr();
         }
 
@@ -581,8 +591,14 @@ impl EbpfGenerator<'_> {
             _ => unreachable!(),
         };
 
+        match self.symbol_table.rng.gen_range(0..2) {
+            0 => self.prog.add(Source::Reg, Arch::X64).set_dst(0).set_src(4).push(),
+            1 => self.prog.sub(Source::Reg, Arch::X64).set_dst(0).set_src(4).push(),
+            _ => unreachable!(),
+        };
+
         // use pointer for store operation, to ensure mem access to map (dst = reg 0)
-        self.prog.store_x(MemSize::Word).set_dst(0).set_src(4).push();
+        self.prog.store(MemSize::Word).set_dst(0).set_imm(42).push();
 
         // r0 = 1 to ensure valid return value
         self.prog.mov(Source::Imm, Arch::X64).set_dst(0).set_imm(1).push();
